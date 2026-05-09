@@ -46,14 +46,6 @@ export type ProductListPage = {
   offset: number;
 };
 
-export type ImageSearchResult = {
-  product_id: string;
-  name: string;
-  image?: string | null;
-  price?: number | null;
-  score: number;
-};
-
 export type ProductSort = 'newest' | 'price_asc' | 'price_desc' | 'rating_desc' | 'name_asc';
 
 export type ProductFilter = {

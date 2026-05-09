@@ -18,17 +18,32 @@ export default function EditProfileScreen() {
   return (
     <>
       <Stack.Screen options={{ title: 'Edit Profile' }} />
-      <View className="flex-1 bg-white p-4">
-        <Text className="mb-2 font-semibold">Name</Text>
-        <TextInput value={name} onChangeText={setName} className="mb-3 rounded border p-3" />
+      <View className="flex-1 bg-bg-primary p-4">
+        <Text className="mb-2 font-semibold text-text-primary">Name</Text>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          className="mb-3 rounded-button border border-semantic-border bg-bg-elevated p-3 text-text-primary"
+          placeholderTextColor="#8888A0"
+        />
 
-        <Text className="mb-2 font-semibold">Bio</Text>
-        <TextInput value={bio} onChangeText={setBio} className="mb-3 rounded border p-3" />
+        <Text className="mb-2 font-semibold text-text-primary">Bio</Text>
+        <TextInput
+          value={bio}
+          onChangeText={setBio}
+          className="mb-3 rounded-button border border-semantic-border bg-bg-elevated p-3 text-text-primary"
+          placeholderTextColor="#8888A0"
+        />
 
-        <Text className="mb-2 font-semibold">Avatar URL</Text>
-        <TextInput value={avatar} onChangeText={setAvatar} className="mb-3 rounded border p-3" />
+        <Text className="mb-2 font-semibold text-text-primary">Avatar URL</Text>
+        <TextInput
+          value={avatar}
+          onChangeText={setAvatar}
+          className="mb-3 rounded-button border border-semantic-border bg-bg-elevated p-3 text-text-primary"
+          placeholderTextColor="#8888A0"
+        />
 
-        <Pressable className="mt-4 items-center rounded-lg bg-[#007AFF] py-3" onPress={save}>
+        <Pressable className="mt-4 items-center rounded-button bg-accent py-3" onPress={save}>
           <Text className="font-semibold text-white">Save</Text>
         </Pressable>
       </View>

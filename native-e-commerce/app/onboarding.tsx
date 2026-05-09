@@ -19,20 +19,20 @@ const slides = [
   {
     id: '1',
     image: require('~/assets/splash.png'),
-    title: 'Choose Products',
-    subtitle: 'Find the best jewelry picks curated for your style and budget.',
+    title: 'Chọn sản phẩm',
+    subtitle: 'Tìm những món đồ trang sức đẹp nhất phù hợp với phong cách và ngân sách của bạn.',
   },
   {
     id: '2',
     image: require('~/assets/splash.png'),
-    title: 'Make Payment',
-    subtitle: 'Pay in seconds with secure checkout and your preferred method.',
+    title: 'Thanh toán',
+    subtitle: 'Thanh toán trong vài giây với quy trình bảo mật và phương thức ưa thích của bạn.',
   },
   {
     id: '3',
     image: require('~/assets/splash.png'),
-    title: 'Get Your Order',
-    subtitle: 'Track delivery and receive your order right at your doorstep.',
+    title: 'Nhận đơn hàng',
+    subtitle: 'Theo dõi vận chuyển và nhận đơn hàng ngay tại nhà bạn.',
   },
 ];
 
@@ -68,10 +68,10 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-bg-primary">
       <View className="px-6 pt-14">
         <TouchableOpacity className="self-end" onPress={finishOnboarding}>
-          <Text className="text-base font-semibold text-[#1f2a44]">Skip</Text>
+          <Text className="text-base font-semibold text-text-secondary">Bỏ qua</Text>
         </TouchableOpacity>
       </View>
 
@@ -89,10 +89,10 @@ export default function OnboardingScreen() {
         renderItem={({ item }) => (
           <View style={{ width }} className="items-center px-8 pt-4">
             <Image source={item.image} className="h-[280px] w-[280px]" resizeMode="contain" />
-            <Text className="mt-8 text-center text-[34px] font-bold text-[#202020]">
+            <Text className="mt-8 text-center text-[34px] font-bold text-text-primary">
               {item.title}
             </Text>
-            <Text className="mt-4 text-center text-base leading-6 text-[#7f7f7f]">
+            <Text className="mt-4 text-center text-base leading-6 text-text-secondary">
               {item.subtitle}
             </Text>
           </View>
@@ -104,16 +104,16 @@ export default function OnboardingScreen() {
           {slides.map((_, index) => (
             <View
               key={index}
-              className={`mx-1 h-2 rounded-full ${currentIndex === index ? 'w-7 bg-[#17223b]' : 'w-2 bg-[#cdd1da]'}`}
+              className={`mx-1 h-2 rounded-full ${currentIndex === index ? 'w-7 bg-accent' : 'w-2 bg-bg-elevated'}`}
             />
           ))}
         </View>
 
         <TouchableOpacity
-          className="items-center rounded-full bg-[#f83758] py-4"
+          className="items-center rounded-full bg-accent py-4 shadow-lg"
           onPress={nextSlide}>
           <Text className="text-lg font-semibold text-white">
-            {isLastSlide ? 'Get Started' : 'Next'}
+            {isLastSlide ? 'Bắt đầu' : 'Tiếp theo'}
           </Text>
         </TouchableOpacity>
       </View>

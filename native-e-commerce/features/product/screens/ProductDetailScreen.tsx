@@ -2,6 +2,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useToast } from '~/components/ToastProvider';
 
 import { Button } from '~/components/Button';
@@ -131,9 +132,9 @@ export default function ProductDetailScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Product Details' }} />
-        <View className="flex-1 items-center justify-center bg-white">
-          <ActivityIndicator size="large" color="#F97316" />
+        <Stack.Screen options={{ title: 'Chi tiết sản phẩm', headerShown: false }} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A0A0F' }}>
+          <ActivityIndicator size="large" color="#6C63FF" />
         </View>
       </>
     );
@@ -142,11 +143,11 @@ export default function ProductDetailScreen() {
   if (loadError || !product) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Product Details' }} />
-        <View className="flex-1 items-center justify-center bg-white px-6">
-          <Text className="text-[18px] font-semibold text-[#232327]">Product not found</Text>
-          <Text className="mt-2 text-center text-[14px] text-[#6A6A6A]">
-            {loadError ?? 'The product you are looking for does not exist.'}
+        <Stack.Screen options={{ title: 'Chi tiết sản phẩm', headerShown: false }} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A0A0F', paddingHorizontal: 24 }}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: '#F0F0F5' }}>Không tìm thấy sản phẩm</Text>
+          <Text style={{ marginTop: 8, textAlign: 'center', fontSize: 14, color: '#8888A0' }}>
+            {loadError ?? 'Sản phẩm bạn đang tìm không tồn tại.'}
           </Text>
         </View>
       </>
@@ -182,309 +183,422 @@ export default function ProductDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: product.name }} />
+      <Stack.Screen options={{ title: product.name, headerShown: false }} />
 
-      <ScrollView className="flex-1 bg-[#F8FAFC]" showsVerticalScrollIndicator={false}>
-        <View className="px-4 pb-32 pt-3">
-          <View className="overflow-hidden rounded-[28px] bg-white shadow-sm">
-            <Image source={{ uri: heroUri }} className="h-[320px] w-full" resizeMode="cover" />
-          </View>
-
-          {galleryImages.length > 1 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              className="mt-3"
-              contentContainerStyle={{ paddingRight: 12 }}>
-              <View className="flex-row gap-2">
-                {galleryImages.map((img, idx) => (
-                  <Pressable
-                    key={`${img}-${idx}`}
-                    onPress={() => setActiveImageIndex(idx)}
-                    className={`overflow-hidden rounded-[16px] border-2 ${
-                      idx === activeImageIndex ? 'border-[#F97316]' : 'border-transparent'
-                    }`}>
-                    <Image source={{ uri: img }} className="h-[64px] w-[64px]" resizeMode="cover" />
-                  </Pressable>
-                ))}
-              </View>
-            </ScrollView>
-          ) : null}
-
-          <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-            <View className="flex-row items-start justify-between gap-4">
-              <View className="flex-1">
-                {product.brand ? (
-                  <Text className="text-[12px] font-semibold uppercase tracking-[2px] text-[#F97316]">
-                    {product.brand}
-                  </Text>
-                ) : null}
-                <Text className="mt-1 text-[22px] font-bold text-[#232327]">{product.name}</Text>
-                <Text className="mt-2 text-[14px] leading-[22px] text-[#6A6A6A]">
-                  {product.description}
-                </Text>
-              </View>
-              {product.discount ? (
-                <View className="rounded-full bg-[#FFF1F3] px-3 py-1">
-                  <Text className="text-[12px] font-semibold text-[#F83758]">{product.discount}</Text>
-                </View>
-              ) : null}
+      <View style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
+        <ScrollView showsVerticalScrollIndicator={false} bounces={true}>
+          {/* === ZONE 1: Full-bleed Product Image === */}
+          <View style={{ height: 400, minHeight: 320, width: '100%', position: 'relative' }}>
+            <Image
+              source={{ uri: heroUri }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="cover"
+            />
+            
+            {/* Gradient overlay at the bottom of the image for blending */}
+            <View
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: 80,
+                backgroundColor: 'transparent',
+              }}
+            >
+              <View style={{ flex: 1, backgroundColor: 'rgba(10, 10, 15, 0)' }} />
+              <View style={{ flex: 1, backgroundColor: 'rgba(10, 10, 15, 0.3)' }} />
+              <View style={{ flex: 1, backgroundColor: 'rgba(10, 10, 15, 0.6)' }} />
+              <View style={{ flex: 1, backgroundColor: 'rgba(10, 10, 15, 0.9)' }} />
             </View>
 
-            <View className="mt-4 flex-row items-end gap-3">
-              <Text className="text-[24px] font-bold text-[#232327]">{formatCurrency(price)}</Text>
+            {/* Gallery thumbnails overlay */}
+            {galleryImages.length > 1 ? (
+              <View style={{ position: 'absolute', bottom: 20, left: 0, right: 0 }}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+                >
+                  {galleryImages.map((img, idx) => (
+                    <Pressable
+                      key={`${img}-${idx}`}
+                      onPress={() => setActiveImageIndex(idx)}
+                      style={{
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        borderWidth: 2,
+                        borderColor: idx === activeImageIndex ? '#6C63FF' : 'transparent',
+                      }}
+                    >
+                      <Image source={{ uri: img }} style={{ width: 56, height: 56 }} resizeMode="cover" />
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
+          </View>
+
+          {/* === ZONE 2: Info Panel (overlaps image via negative margin) === */}
+          <Animated.View
+            entering={FadeInDown.duration(500).delay(150)}
+            style={{
+              backgroundColor: '#13131A', // bg-surface
+              borderTopLeftRadius: 28,
+              borderTopRightRadius: 28,
+              marginTop: -28, // Overlap the image slightly
+              paddingHorizontal: 20,
+              paddingTop: 24,
+              paddingBottom: 40,
+              borderTopWidth: 1,
+              borderLeftWidth: 1,
+              borderRightWidth: 1,
+              borderColor: '#2A2A3A', // semantic-border
+            }}
+          >
+            {/* === PRODUCT NAME & BRAND === */}
+            <View style={{ marginBottom: 12 }}>
+              {product.brand ? (
+                <Text style={{ fontSize: 12, fontWeight: '700', letterSpacing: 2, color: '#6C63FF', textTransform: 'uppercase', marginBottom: 6 }}>
+                  {product.brand}
+                </Text>
+              ) : null}
+              <Text
+                style={{
+                  color: '#F0F0F5', // text-primary
+                  fontSize: 24,
+                  fontWeight: '800',
+                  letterSpacing: -0.5,
+                }}
+              >
+                {product.name}
+              </Text>
+            </View>
+
+            {/* === PRICE ROW === */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ color: '#6C63FF', fontSize: 28, fontWeight: '800' }}>
+                {formatCurrency(price)}
+              </Text>
               {product.compareAtPrice && product.compareAtPrice > price ? (
-                <Text className="text-[14px] text-[#9CA3AF] line-through">
+                <Text
+                  style={{
+                    color: '#8888A0',
+                    fontSize: 16,
+                    textDecorationLine: 'line-through',
+                    marginLeft: 10,
+                  }}
+                >
                   {formatCurrency(product.compareAtPrice)}
                 </Text>
               ) : null}
+              {product.discount ? (
+                <View style={{ marginLeft: 10, backgroundColor: 'rgba(255, 101, 132, 0.15)', borderRadius: 9999, paddingHorizontal: 8, paddingVertical: 4 }}>
+                  <Text style={{ color: '#FF6584', fontSize: 11, fontWeight: '700' }}>{product.discount}</Text>
+                </View>
+              ) : null}
             </View>
 
-            <View className="mt-3 flex-row items-center gap-2">
-              <Ionicons name="star" size={16} color="#FFC107" />
-              <Text className="text-[13px] font-medium text-[#4A4A4A]">
-                {product.rating.toFixed(1)} • {product.reviews.toLocaleString()} reviews
+            {/* === RATING & STOCK === */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24, gap: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="star" size={16} color="#FFC107" />
+                <Text style={{ color: '#8888A0', fontSize: 13, fontWeight: '600' }}>
+                  {product.rating.toFixed(1)} ({product.reviews})
+                </Text>
+              </View>
+              <View
+                style={{
+                  backgroundColor: isOutOfStock ? 'rgba(255, 101, 132, 0.15)' : 'rgba(62, 207, 142, 0.15)',
+                  borderRadius: 9999,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                }}
+              >
+                <Text
+                  style={{
+                    color: isOutOfStock ? '#FF6584' : '#3ECF8E',
+                    fontSize: 11,
+                    fontWeight: '700',
+                  }}
+                >
+                  {isOutOfStock ? 'Hết hàng' : `Còn ${totalStock}`}
+                </Text>
+              </View>
+            </View>
+
+            {/* === SIZE SELECTION === */}
+            {sizes.length > 0 ? (
+              <View style={{ marginBottom: 24 }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={{ color: '#F0F0F5', fontSize: 15, fontWeight: '700' }}>Cỡ (EU)</Text>
+                  <Pressable onPress={() => setShowSizeGuide((v) => !v)}>
+                    <Text style={{ color: '#6C63FF', fontSize: 13, fontWeight: '600' }}>
+                      {showSizeGuide ? 'Ẩn bảng' : 'Bảng size'}
+                    </Text>
+                  </Pressable>
+                </View>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {sizes.map((sz) => {
+                    const variantForSize = product.variants.find(
+                      (v) => v.size === sz && (selectedColor == null || v.color === selectedColor)
+                    );
+                    const isAvailable = (variantForSize?.stock ?? 0) > 0;
+                    const isSelected = selectedSize === sz;
+                    return (
+                      <Pressable
+                        key={sz}
+                        onPress={() => {
+                          const next = product.variants.find(
+                            (v) =>
+                              v.size === sz &&
+                              (selectedColor == null || v.color === selectedColor) &&
+                              v.stock > 0
+                          ) ?? product.variants.find((v) => v.size === sz && v.stock > 0);
+                          setSelectedSize(sz);
+                          if (next?.color) setSelectedColor(next.color);
+                        }}
+                        disabled={!isAvailable}
+                        style={{
+                          minWidth: 52,
+                          alignItems: 'center',
+                          borderRadius: 12,
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                          backgroundColor: isSelected ? 'rgba(108, 99, 255, 0.15)' : '#1C1C28',
+                          paddingHorizontal: 16,
+                          paddingVertical: 10,
+                          opacity: isAvailable ? 1 : 0.4,
+                        }}
+                      >
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: isSelected ? '#6C63FF' : '#F0F0F5' }}>
+                          {sz}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+                {showSizeGuide ? (
+                  <View style={{ marginTop: 16, backgroundColor: '#1C1C28', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#2A2A3A' }}>
+                    <View style={{ flexDirection: 'row', paddingBottom: 8 }}>
+                      <Text style={{ flex: 1, fontSize: 12, fontWeight: '700', color: '#6C63FF', textTransform: 'uppercase' }}>EU</Text>
+                      <Text style={{ flex: 1, fontSize: 12, fontWeight: '700', color: '#6C63FF', textTransform: 'uppercase' }}>US</Text>
+                      <Text style={{ flex: 1, fontSize: 12, fontWeight: '700', color: '#6C63FF', textTransform: 'uppercase' }}>CM</Text>
+                    </View>
+                    {SHOE_SIZE_GUIDE.map((row) => (
+                      <View key={row.eu} style={{ flexDirection: 'row', paddingVertical: 4 }}>
+                        <Text style={{ flex: 1, fontSize: 13, color: '#F0F0F5' }}>{row.eu}</Text>
+                        <Text style={{ flex: 1, fontSize: 13, color: '#F0F0F5' }}>{row.us}</Text>
+                        <Text style={{ flex: 1, fontSize: 13, color: '#F0F0F5' }}>{row.cm}</Text>
+                      </View>
+                    ))}
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
+
+            {/* === COLOR SELECTION === */}
+            {colors.length > 0 ? (
+              <View style={{ marginBottom: 24 }}>
+                <Text style={{ color: '#F0F0F5', fontSize: 15, fontWeight: '700', marginBottom: 12 }}>Màu sắc</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                  {colors.map((c) => {
+                    const variantForColor = product.variants.find(
+                      (v) => v.color === c && (selectedSize == null || v.size === selectedSize)
+                    );
+                    const isAvailable = (variantForColor?.stock ?? 0) > 0;
+                    const isSelected = selectedColor === c;
+                    return (
+                      <Pressable
+                        key={c}
+                        onPress={() => {
+                          const next = product.variants.find(
+                            (v) =>
+                              v.color === c &&
+                              (selectedSize == null || v.size === selectedSize) &&
+                              v.stock > 0
+                          ) ?? product.variants.find((v) => v.color === c && v.stock > 0);
+                          setSelectedColor(c);
+                          if (next?.size) setSelectedSize(next.size);
+                        }}
+                        disabled={!isAvailable}
+                        style={{
+                          borderRadius: 9999,
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                          backgroundColor: isSelected ? 'rgba(108, 99, 255, 0.15)' : '#1C1C28',
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          opacity: isAvailable ? 1 : 0.4,
+                        }}
+                      >
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: isSelected ? '#6C63FF' : '#F0F0F5' }}>
+                          {c}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
+
+            {/* === QUANTITY SELECTOR === */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24 }}>
+              <Text style={{ color: '#8888A0', fontSize: 13, fontWeight: '600', marginRight: 'auto' }}>
+                Số lượng
               </Text>
-              {product.shoeType ? (
-                <Text className="ml-2 rounded-full bg-[#F3F4F6] px-2 py-1 text-[11px] capitalize text-[#4B5563]">
-                  {product.shoeType}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: '#1C1C28',
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#2A2A3A',
+                  overflow: 'hidden',
+                }}
+              >
+                <Pressable
+                  onPress={() => setQuantity((current) => Math.max(1, current - 1))}
+                  style={{ paddingHorizontal: 16, paddingVertical: 12 }}
+                >
+                  <Text style={{ color: '#F0F0F5', fontSize: 18, fontWeight: '700' }}>−</Text>
+                </Pressable>
+                <Text
+                  style={{
+                    color: '#F0F0F5',
+                    fontSize: 16,
+                    fontWeight: '700',
+                    minWidth: 36,
+                    textAlign: 'center',
+                  }}
+                >
+                  {quantity}
                 </Text>
-              ) : null}
-              {product.genderTarget ? (
-                <Text className="rounded-full bg-[#F3F4F6] px-2 py-1 text-[11px] capitalize text-[#4B5563]">
-                  {product.genderTarget}
-                </Text>
-              ) : null}
-            </View>
-          </View>
-
-          {sizes.length > 0 ? (
-            <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-              <View className="flex-row items-center justify-between">
-                <Text className="text-[16px] font-semibold text-[#232327]">Size (EU)</Text>
-                <Pressable onPress={() => setShowSizeGuide((v) => !v)}>
-                  <Text className="text-[13px] font-semibold text-[#F97316]">
-                    {showSizeGuide ? 'Hide guide' : 'Size guide'}
-                  </Text>
+                <Pressable
+                  onPress={() =>
+                    setQuantity((current) => Math.min(totalStock || current, current + 1))
+                  }
+                  disabled={isOutOfStock}
+                  style={{ paddingHorizontal: 16, paddingVertical: 12 }}
+                >
+                  <Text style={{ color: '#6C63FF', fontSize: 18, fontWeight: '700' }}>+</Text>
                 </Pressable>
               </View>
-
-              <View className="mt-3 flex-row flex-wrap gap-2">
-                {sizes.map((sz) => {
-                  const variantForSize = product.variants.find(
-                    (v) => v.size === sz && (selectedColor == null || v.color === selectedColor)
-                  );
-                  const isAvailable = (variantForSize?.stock ?? 0) > 0;
-                  const isSelected = selectedSize === sz;
-                  return (
-                    <Pressable
-                      key={sz}
-                      onPress={() => {
-                        const next = product.variants.find(
-                          (v) =>
-                            v.size === sz &&
-                            (selectedColor == null || v.color === selectedColor) &&
-                            v.stock > 0
-                        ) ?? product.variants.find((v) => v.size === sz && v.stock > 0);
-                        setSelectedSize(sz);
-                        if (next?.color) setSelectedColor(next.color);
-                      }}
-                      disabled={!isAvailable}
-                      className={`min-w-[52px] items-center rounded-[14px] border px-4 py-2 ${
-                        isSelected
-                          ? 'border-[#F97316] bg-[#FFF4ED]'
-                          : isAvailable
-                            ? 'border-[#E5E7EB] bg-white'
-                            : 'border-[#E5E7EB] bg-[#F3F4F6] opacity-50'
-                      }`}>
-                      <Text
-                        className={`text-[14px] font-semibold ${
-                          isSelected ? 'text-[#F97316]' : 'text-[#1F2937]'
-                        }`}>
-                        {sz}
-                      </Text>
-                      {!isAvailable ? (
-                        <Text className="text-[10px] text-[#9CA3AF]">Out</Text>
-                      ) : null}
-                    </Pressable>
-                  );
-                })}
-              </View>
-
-              {showSizeGuide ? (
-                <View className="mt-4 rounded-[16px] bg-[#FFF7F2] p-3">
-                  <View className="flex-row pb-2">
-                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">EU</Text>
-                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">US</Text>
-                    <Text className="flex-1 text-[12px] font-semibold uppercase text-[#F97316]">CM</Text>
-                  </View>
-                  {SHOE_SIZE_GUIDE.map((row) => (
-                    <View key={row.eu} className="flex-row py-1">
-                      <Text className="flex-1 text-[13px] text-[#1F2937]">{row.eu}</Text>
-                      <Text className="flex-1 text-[13px] text-[#1F2937]">{row.us}</Text>
-                      <Text className="flex-1 text-[13px] text-[#1F2937]">{row.cm}</Text>
-                    </View>
-                  ))}
-                </View>
-              ) : null}
             </View>
-          ) : null}
 
-          {colors.length > 0 ? (
-            <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-              <Text className="text-[16px] font-semibold text-[#232327]">Color</Text>
-              <View className="mt-3 flex-row flex-wrap gap-2">
-                {colors.map((c) => {
-                  const variantForColor = product.variants.find(
-                    (v) => v.color === c && (selectedSize == null || v.size === selectedSize)
-                  );
-                  const isAvailable = (variantForColor?.stock ?? 0) > 0;
-                  const isSelected = selectedColor === c;
-                  return (
-                    <Pressable
-                      key={c}
-                      onPress={() => {
-                        const next = product.variants.find(
-                          (v) =>
-                            v.color === c &&
-                            (selectedSize == null || v.size === selectedSize) &&
-                            v.stock > 0
-                        ) ?? product.variants.find((v) => v.color === c && v.stock > 0);
-                        setSelectedColor(c);
-                        if (next?.size) setSelectedSize(next.size);
-                      }}
-                      disabled={!isAvailable}
-                      className={`rounded-full border px-4 py-2 ${
-                        isSelected
-                          ? 'border-[#F97316] bg-[#FFF4ED]'
-                          : isAvailable
-                            ? 'border-[#E5E7EB] bg-white'
-                            : 'border-[#E5E7EB] bg-[#F3F4F6] opacity-50'
-                      }`}>
-                      <Text
-                        className={`text-[13px] font-semibold ${
-                          isSelected ? 'text-[#F97316]' : 'text-[#1F2937]'
-                        }`}>
-                        {c}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          ) : null}
-
-          <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-            <Text className="text-[16px] font-semibold text-[#232327]">Lựa chọn hiện tại</Text>
-            <View className="mt-3 flex-row flex-wrap items-center gap-2">
-              {selectedVariant?.size ? (
-                <View className="rounded-full bg-[#FFF4ED] px-3 py-1.5">
-                  <Text className="text-[12px] font-semibold text-[#F97316]">
-                    Size {selectedVariant.size}
-                  </Text>
-                </View>
-              ) : null}
-              {selectedVariant?.color ? (
-                <View className="rounded-full bg-[#F3F4F6] px-3 py-1.5">
-                  <Text className="text-[12px] font-semibold text-[#4B5563]">
-                    {selectedVariant.color}
-                  </Text>
-                </View>
-              ) : null}
-              <View
-                className={`rounded-full px-3 py-1.5 ${
-                  isOutOfStock ? 'bg-[#FEF2F2]' : totalStock <= 5 ? 'bg-[#FFF7ED]' : 'bg-[#ECFDF3]'
-                }`}>
-                <Text
-                  className={`text-[12px] font-semibold ${
-                    isOutOfStock ? 'text-[#B91C1C]' : totalStock <= 5 ? 'text-[#C2410C]' : 'text-[#166534]'
-                  }`}>
-                  {isOutOfStock
-                    ? 'Hết hàng'
-                    : totalStock <= 5
-                      ? `Sắp hết (${totalStock})`
-                      : `Còn hàng (${totalStock})`}
+            {/* === DESCRIPTION SECTION === */}
+            <View style={{ marginBottom: 28 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                <View
+                  style={{
+                    width: 4,
+                    height: 20,
+                    backgroundColor: '#6C63FF',
+                    borderRadius: 2,
+                    marginRight: 10,
+                  }}
+                />
+                <Text style={{ color: '#F0F0F5', fontSize: 16, fontWeight: '700' }}>
+                  Mô tả
                 </Text>
               </View>
-            </View>
-          </View>
-
-          <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-[16px] font-semibold text-[#232327]">Quantity</Text>
-              <Text className={`text-[13px] font-semibold ${isOutOfStock ? 'text-[#B91C1C]' : 'text-[#16A34A]'}`}>
-                {isOutOfStock ? 'Out of stock' : `${totalStock} in stock`}
+              <Text style={{ color: '#8888A0', fontSize: 14, lineHeight: 22 }}>
+                {product.description}
               </Text>
             </View>
-            <View className="mt-3 flex-row items-center gap-3">
-              <Pressable
-                onPress={() => setQuantity((current) => Math.max(1, current - 1))}
-                className="h-11 w-11 items-center justify-center rounded-full bg-[#FFF4ED]">
-                <Text className="text-[22px] font-semibold text-[#F97316]">−</Text>
-              </Pressable>
-              <Text className="min-w-[44px] text-center text-[18px] font-semibold text-[#232327]">
-                {quantity}
-              </Text>
-              <Pressable
-                onPress={() =>
-                  setQuantity((current) => Math.min(totalStock || current, current + 1))
-                }
-                disabled={isOutOfStock}
-                className={`h-11 w-11 items-center justify-center rounded-full ${
-                  isOutOfStock ? 'bg-[#FFE3D5]' : 'bg-[#F97316]'
-                }`}>
-                <Text className="text-[22px] font-semibold text-white">+</Text>
-              </Pressable>
-            </View>
-          </View>
 
-          {product.shortDescription || product.usageType || product.season ? (
-            <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-              <Text className="text-[16px] font-semibold text-[#232327]">Highlights</Text>
-              <View className="mt-2 gap-1.5">
-                {product.usageType ? (
-                  <Text className="text-[13px] text-[#4B5563]">• Phù hợp: {product.usageType}</Text>
-                ) : null}
-                {product.season ? (
-                  <Text className="text-[13px] text-[#4B5563]">• Mùa: {product.season}</Text>
-                ) : null}
-                {product.upperMaterial ? (
-                  <Text className="text-[13px] text-[#4B5563]">
-                    • Chất liệu thân: {product.upperMaterial}
+            {/* === HIGHLIGHTS === */}
+            {(product.usageType || product.season || product.upperMaterial || product.soleMaterial) ? (
+              <View style={{ marginBottom: 28 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <View
+                    style={{
+                      width: 4,
+                      height: 20,
+                      backgroundColor: '#6C63FF',
+                      borderRadius: 2,
+                      marginRight: 10,
+                    }}
+                  />
+                  <Text style={{ color: '#F0F0F5', fontSize: 16, fontWeight: '700' }}>
+                    Đặc điểm
                   </Text>
-                ) : null}
-                {product.soleMaterial ? (
-                  <Text className="text-[13px] text-[#4B5563]">• Đế: {product.soleMaterial}</Text>
-                ) : null}
-                {product.closureType ? (
-                  <Text className="text-[13px] text-[#4B5563]">
-                    • Đóng/mở: {product.closureType}
-                  </Text>
-                ) : null}
+                </View>
+                <View style={{ gap: 6 }}>
+                  {product.usageType ? (
+                    <Text style={{ color: '#8888A0', fontSize: 13 }}>• Phù hợp: {product.usageType}</Text>
+                  ) : null}
+                  {product.season ? (
+                    <Text style={{ color: '#8888A0', fontSize: 13 }}>• Mùa: {product.season}</Text>
+                  ) : null}
+                  {product.upperMaterial ? (
+                    <Text style={{ color: '#8888A0', fontSize: 13 }}>
+                      • Chất liệu thân: {product.upperMaterial}
+                    </Text>
+                  ) : null}
+                  {product.soleMaterial ? (
+                    <Text style={{ color: '#8888A0', fontSize: 13 }}>• Đế: {product.soleMaterial}</Text>
+                  ) : null}
+                </View>
               </View>
-            </View>
-          ) : null}
-        </View>
-      </ScrollView>
+            ) : null}
 
-      <View className="absolute bottom-0 left-0 right-0 border-t border-[#F3F4F6] bg-white px-5 pb-6 pt-4">
-        <View className="flex-row gap-3">
-          <View className="flex-1">
-            <Button
-              title={isOutOfStock ? 'Out of stock' : 'Add to Cart'}
+            {/* === ADD TO CART CTA BUTTON === */}
+            <Pressable
               onPress={handleAddToCart}
               disabled={isOutOfStock || !selectedVariant}
-              variant="secondary"
-            />
-          </View>
-          <View className="flex-1">
-            <Button
-              title={isOutOfStock ? 'Out of stock' : 'Mua ngay'}
+              style={{
+                backgroundColor: isOutOfStock ? '#444455' : '#6C63FF', // accent
+                borderRadius: 16,
+                paddingVertical: 18,
+                alignItems: 'center',
+                shadowColor: '#6C63FF',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.4,
+                shadowRadius: 20,
+                elevation: 12,
+                marginBottom: 12,
+              }}
+            >
+              <Text
+                style={{
+                  color: '#FFFFFF',
+                  fontSize: 17,
+                  fontWeight: '800',
+                  letterSpacing: 0.5,
+                }}
+              >
+                {isOutOfStock ? 'Hết hàng' : 'Thêm vào giỏ'}
+              </Text>
+            </Pressable>
+
+            {/* === BUY NOW BUTTON === */}
+            <Pressable
               onPress={handleBuyNow}
               disabled={isOutOfStock || !selectedVariant}
-            />
-          </View>
-        </View>
+              style={{
+                backgroundColor: 'transparent',
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: isOutOfStock ? '#444455' : '#6C63FF',
+                paddingVertical: 18,
+                alignItems: 'center',
+              }}
+            >
+              <Text
+                style={{
+                  color: isOutOfStock ? '#444455' : '#6C63FF',
+                  fontSize: 17,
+                  fontWeight: '800',
+                  letterSpacing: 0.5,
+                }}
+              >
+                {isOutOfStock ? 'Hết hàng' : 'Mua ngay'}
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </ScrollView>
       </View>
     </>
   );

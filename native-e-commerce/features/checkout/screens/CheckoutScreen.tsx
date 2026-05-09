@@ -18,19 +18,19 @@ import { formatCurrency } from '~/lib/utils/formatters';
 const paymentMethods = [
   {
     id: 'card',
-    title: 'Credit / Debit Card',
+    title: 'Thẻ tín dụng / Ghi nợ',
     subtitle: 'Visa, Mastercard, JCB',
     icon: 'card-outline' as const,
   },
   {
     id: 'cod',
-    title: 'Cash on Delivery',
-    subtitle: 'Pay when your parcel arrives',
+    title: 'Thanh toán khi nhận hàng',
+    subtitle: 'Trả tiền khi nhận hàng',
     icon: 'cash-outline' as const,
   },
   {
     id: 'wallet',
-    title: 'E-wallet',
+    title: 'Ví điện tử',
     subtitle: 'Momo, ZaloPay, VNPay',
     icon: 'wallet-outline' as const,
   },
@@ -171,46 +171,51 @@ export default function CheckoutScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Checkout',
+          title: 'Thanh toán',
           headerShadowVisible: false,
         }}
       />
 
-      <View className="flex-1 bg-[#F8FAFC]">
-        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <View className="flex-1 bg-bg-primary">
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 120 }}
+          keyboardShouldPersistTaps="handled"
+        >
           <View className="px-5 pb-8 pt-3">
-            <Text className="text-[13px] uppercase tracking-[3px] text-[#F97316]">
-              Secure checkout
+            <Text className="text-[13px] uppercase tracking-[3px] text-accent">
+              Thanh toán an toàn
             </Text>
-            <Text className="mt-2 text-[30px] font-bold text-[#111827]">Payment</Text>
+            <Text className="mt-2 text-[30px] font-bold text-text-primary">Thanh toán</Text>
 
             {items.length === 0 ? (
-              <View className="mt-5 rounded-[28px] bg-white p-6 shadow-sm">
-                <Text className="text-center text-[15px] text-[#6B7280]">{L.empty.checkoutCart}</Text>
+              <View className="mt-5 rounded-[28px] bg-bg-surface border border-semantic-border p-6">
+                <Text className="text-center text-[15px] text-text-secondary">{L.empty.checkoutCart}</Text>
                 <View className="mt-4">
                   <Button title={L.empty.checkoutBackShop} onPress={() => router.replace('/(tabs)')} />
                 </View>
               </View>
             ) : (
               <>
-                <View className="mt-5 rounded-[28px] bg-white p-4 shadow-sm">
-                  <View className="flex-row items-center justify-between">
+                <View style={{ marginTop: 20, borderRadius: 28, backgroundColor: '#13131A', borderWidth: 1, borderColor: '#2A2A3A', padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <View>
-                      <Text className="text-[16px] font-semibold text-[#111827]">
-                        Shipping address
+                      <Text style={{ fontSize: 18, fontWeight: '800', color: '#F0F0F5', letterSpacing: 0.3 }}>
+                        Địa chỉ giao hàng
                       </Text>
-                      <Text className="mt-1 text-[13px] text-[#6B7280]">
-                        Where should we deliver?
+                      <Text style={{ marginTop: 4, fontSize: 14, color: '#8888A0', fontWeight: '500' }}>
+                        Giao hàng đến đâu?
                       </Text>
                     </View>
                     <Pressable onPress={() => router.push('/address')}>
-                      <Text className="text-[13px] font-semibold text-[#F97316]">Change</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#6C63FF', letterSpacing: 0.3 }}>Thay đổi</Text>
                     </Pressable>
                   </View>
 
-                  <View className="mt-4 gap-3">
+                  <View style={{ gap: 12 }}>
                     {shippingAddresses.length === 0 ? (
-                      <Text className="text-[14px] text-[#6B7280]">
+                      <Text style={{ fontSize: 14, color: '#8888A0', lineHeight: 22 }}>
                         Chưa có địa chỉ. Đăng nhập và thêm địa chỉ trong Address book.
                       </Text>
                     ) : (
@@ -221,52 +226,62 @@ export default function CheckoutScreen() {
                           <Pressable
                             key={address.id}
                             onPress={() => setSelectedAddressId(address.id)}
-                            className={`rounded-[22px] border p-4 ${
-                              isSelected
-                                ? 'border-[#F97316] bg-[#FFF9F5]'
-                                : 'border-[#E5E7EB] bg-white'
-                            }`}>
-                            <View className="flex-row items-start gap-3">
+                            style={{
+                              borderRadius: 18,
+                              borderWidth: isSelected ? 2 : 1,
+                              borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                              backgroundColor: isSelected ? 'rgba(108, 99, 255, 0.08)' : '#1C1C28',
+                              padding: 16,
+                              shadowColor: isSelected ? '#6C63FF' : '#000',
+                              shadowOffset: { width: 0, height: isSelected ? 6 : 2 },
+                              shadowOpacity: isSelected ? 0.3 : 0.1,
+                              shadowRadius: isSelected ? 12 : 6,
+                              elevation: isSelected ? 6 : 2,
+                            }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'start', gap: 14 }}>
                               <View
-                                className={`mt-1 h-10 w-10 items-center justify-center rounded-full ${
-                                  isSelected ? 'bg-[#F97316]' : 'bg-[#F3F4F6]'
-                                }`}>
+                                style={{
+                                  marginTop: 2,
+                                  height: 48,
+                                  width: 48,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  borderRadius: 9999,
+                                  backgroundColor: isSelected ? '#6C63FF' : '#13131A',
+                                  borderWidth: 1,
+                                  borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                                }}>
                                 <Ionicons
-                                  name="location-outline"
-                                  size={18}
-                                  color={isSelected ? '#FFFFFF' : '#6B7280'}
+                                  name="location"
+                                  size={22}
+                                  color={isSelected ? '#FFFFFF' : '#8888A0'}
                                 />
                               </View>
-                              <View className="flex-1">
-                                <View className="flex-row items-center gap-2">
-                                  <Text className="text-[15px] font-semibold text-[#111827]">
+                              <View style={{ flex: 1 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                  <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#6C63FF' : '#F0F0F5', letterSpacing: 0.2 }}>
                                     {address.name}
                                   </Text>
                                   {address.isDefault ? (
-                                    <View className="rounded-full bg-[#DCFCE7] px-2 py-1">
-                                      <Text className="text-[10px] font-semibold text-[#166534]">
-                                        Default
+                                    <View style={{ borderRadius: 9999, backgroundColor: 'rgba(62, 207, 142, 0.15)', borderWidth: 1, borderColor: 'rgba(62, 207, 142, 0.3)', paddingHorizontal: 8, paddingVertical: 3 }}>
+                                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#3ECF8E', letterSpacing: 0.5 }}>
+                                        Mặc định
                                       </Text>
                                     </View>
                                   ) : null}
                                 </View>
-                                <Text className="mt-1 text-[13px] leading-[20px] text-[#6B7280]">
+                                <Text style={{ fontSize: 14, lineHeight: 22, color: '#8888A0', fontWeight: '500', marginBottom: 4 }}>
                                   {address.address}
                                 </Text>
-                                <Text className="mt-1 text-[13px] text-[#6B7280]">
+                                <Text style={{ fontSize: 14, color: '#8888A0', fontWeight: '500' }}>
                                   {address.city} • {address.phone}
                                 </Text>
                               </View>
-                              <View
-                                className={`mt-1 h-5 w-5 rounded-full border-2 ${
-                                  isSelected
-                                    ? 'border-[#F97316] bg-[#F97316]'
-                                    : 'border-[#D1D5DB] bg-white'
-                                }`}>
-                                {isSelected ? (
-                                  <View className="m-[3px] h-1.5 w-1.5 rounded-full bg-white" />
-                                ) : null}
-                              </View>
+                              {isSelected && (
+                                <View style={{ position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: 9999, backgroundColor: '#6C63FF', alignItems: 'center', justifyContent: 'center', shadowColor: '#6C63FF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 6, elevation: 4 }}>
+                                  <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '900' }}>✓</Text>
+                                </View>
+                              )}
                             </View>
                           </Pressable>
                         );
@@ -275,75 +290,87 @@ export default function CheckoutScreen() {
                   </View>
 
                   <Pressable
-                    className="mt-4 flex-row items-center justify-between rounded-[20px] bg-[#F8FAFC] px-4 py-3"
+                    style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 16, backgroundColor: '#1C1C28', borderWidth: 1, borderColor: '#2A2A3A', paddingHorizontal: 16, paddingVertical: 14 }}
                     onPress={() => router.push('/addresses')}>
                     <View>
-                      <Text className="text-[12px] uppercase tracking-[1.5px] text-[#6B7280]">
-                        Manage addresses
+                      <Text style={{ fontSize: 12, letterSpacing: 1.2, textTransform: 'uppercase', color: '#8888A0', fontWeight: '700' }}>
+                        Quản lý địa chỉ
                       </Text>
-                      <Text className="mt-1 text-[13px] font-semibold text-[#111827]">
-                        Open address book
+                      <Text style={{ marginTop: 4, fontSize: 14, fontWeight: '700', color: '#F0F0F5' }}>
+                        Mở sổ địa chỉ
                       </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={18} color="#C7C7CC" />
+                    <Ionicons name="chevron-forward" size={20} color="#8888A0" />
                   </Pressable>
                 </View>
 
-                <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-                  <Text className="text-[16px] font-semibold text-[#111827]">Payment method</Text>
-                  <Text className="mt-1 text-[13px] text-[#6B7280]">
-                    Choose how you want to pay
+                <View style={{ marginTop: 16, borderRadius: 28, backgroundColor: '#13131A', borderWidth: 1, borderColor: '#2A2A3A', padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 16, elevation: 8 }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#F0F0F5', letterSpacing: 0.3, marginBottom: 6 }}>Phương thức thanh toán</Text>
+                  <Text style={{ fontSize: 14, color: '#8888A0', fontWeight: '500', marginBottom: 16 }}>
+                    Chọn cách thanh toán
                   </Text>
 
-                  <View className="mt-4 gap-3">
+                  <View style={{ gap: 12 }}>
                     {paymentMethods.map((method) => {
                       const isSelected = method.id === selectedPaymentMethodId;
                       return (
                         <Pressable
                           key={method.id}
                           onPress={() => setSelectedPaymentMethodId(method.id)}
-                          className={`flex-row items-center rounded-[22px] border p-4 ${
-                            isSelected
-                              ? 'border-[#F97316] bg-[#FFF7F2]'
-                              : 'border-[#E5E7EB] bg-white'
-                          }`}>
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            borderRadius: 18,
+                            borderWidth: isSelected ? 2 : 1,
+                            borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                            backgroundColor: isSelected ? 'rgba(108, 99, 255, 0.08)' : '#1C1C28',
+                            padding: 16,
+                            shadowColor: isSelected ? '#6C63FF' : '#000',
+                            shadowOffset: { width: 0, height: isSelected ? 6 : 2 },
+                            shadowOpacity: isSelected ? 0.3 : 0.1,
+                            shadowRadius: isSelected ? 12 : 6,
+                            elevation: isSelected ? 6 : 2,
+                          }}>
                           <View
-                            className={`mr-3 h-11 w-11 items-center justify-center rounded-full ${
-                              isSelected ? 'bg-[#F97316]' : 'bg-[#F3F4F6]'
-                            }`}>
+                            style={{
+                              marginRight: 14,
+                              height: 52,
+                              width: 52,
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: 9999,
+                              backgroundColor: isSelected ? '#6C63FF' : '#13131A',
+                              borderWidth: 1,
+                              borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                            }}>
                             <Ionicons
                               name={method.icon}
-                              size={20}
-                              color={isSelected ? '#FFFFFF' : '#6B7280'}
+                              size={24}
+                              color={isSelected ? '#FFFFFF' : '#8888A0'}
                             />
                           </View>
-                          <View className="flex-1">
-                            <Text className="text-[15px] font-semibold text-[#111827]">
+                          <View style={{ flex: 1 }}>
+                            <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#6C63FF' : '#F0F0F5', letterSpacing: 0.2, marginBottom: 4 }}>
                               {method.title}
                             </Text>
-                            <Text className="mt-1 text-[13px] text-[#6B7280]">
+                            <Text style={{ fontSize: 14, color: '#8888A0', fontWeight: '500' }}>
                               {method.subtitle}
                             </Text>
                           </View>
-                          <View
-                            className={`h-5 w-5 rounded-full border-2 ${
-                              isSelected
-                                ? 'border-[#F97316] bg-[#F97316]'
-                                : 'border-[#D1D5DB] bg-white'
-                            }`}>
-                            {isSelected ? (
-                              <View className="m-[3px] h-1.5 w-1.5 rounded-full bg-white" />
-                            ) : null}
-                          </View>
+                          {isSelected && (
+                            <View style={{ width: 24, height: 24, borderRadius: 9999, backgroundColor: '#6C63FF', alignItems: 'center', justifyContent: 'center', shadowColor: '#6C63FF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 6, elevation: 4 }}>
+                              <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '900' }}>✓</Text>
+                            </View>
+                          )}
                         </Pressable>
                       );
                     })}
                   </View>
                 </View>
 
-                <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-                  <Text className="text-[16px] font-semibold text-[#111827]">Promo code</Text>
-                  <Text className="mt-1 text-[13px] text-[#6B7280]">
+                <View className="mt-4 rounded-[28px] bg-bg-surface border border-semantic-border p-4">
+                  <Text className="text-[16px] font-semibold text-text-primary">Mã giảm giá</Text>
+                  <Text className="mt-1 text-[13px] text-text-secondary">
                     Mã sẽ được backend kiểm tra khi đặt đơn.
                   </Text>
                   <View className="mt-3 flex-row items-end gap-2">
@@ -362,59 +389,70 @@ export default function CheckoutScreen() {
                         setPromoCode(normalized);
                         setPromoInput(normalized);
                       }}
-                      className="rounded-full bg-[#F97316] px-4 py-2.5">
+                      className="rounded-full bg-accent px-4 py-2.5">
                       <Text className="text-[12px] font-semibold text-white">Áp dụng</Text>
                     </Pressable>
                   </View>
                   {promoCode ? (
-                    <View className="mt-3 flex-row items-center justify-between rounded-[14px] bg-[#ECFDF3] px-3 py-2">
-                      <Text className="text-[12px] font-semibold text-[#166534]">Đang áp dụng: {promoCode}</Text>
+                    <View className="mt-3 flex-row items-center justify-between rounded-[14px] bg-semantic-success/10 border border-semantic-success/25 px-3 py-2">
+                      <Text className="text-[12px] font-semibold text-semantic-success">Đang áp dụng: {promoCode}</Text>
                       <Pressable onPress={() => setPromoCode(null)}>
-                        <Text className="text-[12px] font-semibold text-[#166534]">Bỏ</Text>
+                        <Text className="text-[12px] font-semibold text-semantic-success">Bỏ</Text>
                       </Pressable>
                     </View>
                   ) : null}
                 </View>
 
-                <View className="mt-4 rounded-[28px] bg-white p-4 shadow-sm">
-                  <Text className="text-[16px] font-semibold text-[#111827]">Order summary</Text>
+                <View className="mt-4 rounded-[28px] bg-bg-surface border border-semantic-border p-5">
+                  <Text className="text-[16px] font-semibold text-text-primary mb-4">Tóm tắt đơn hàng</Text>
 
-                  <SummaryRow label="Subtotal" value={formatCurrency(subtotal)} />
+                  <SummaryRow label="Tạm tính" value={formatCurrency(subtotal)} />
                   <SummaryRow
-                    label="Shipping"
+                    label="Phí vận chuyển"
                     value={shipping === 0 && items.length > 0 ? 'Miễn phí' : formatCurrency(shipping)}
                   />
                   <SummaryRow
-                    label="Discount"
+                    label="Giảm giá"
                     value={`-${formatCurrency(discount)}`}
-                    valueClass="text-[#12B76A]"
+                    valueClass="text-semantic-success"
                   />
                   {promoCode ? (
-                    <Text className="mb-3 text-[12px] text-[#16A34A]">
-                      Promo `{promoCode}` sẽ được xác nhận khi nhấn Place Order.
+                    <Text className="mb-3 text-[12px] text-semantic-success">
+                      Promo `{promoCode}` sẽ được xác nhận khi nhấn Đặt hàng.
                     </Text>
                   ) : null}
 
-                  <View className="my-3 h-[1px] bg-[#F3F4F6]" />
+                  <View className="my-3 h-px bg-semantic-border" />
 
-                  <SummaryRow label="Total" value={formatCurrency(total)} total />
+                  <SummaryRow label="Tổng cộng" value={formatCurrency(total)} total />
 
-                  <View className="mt-3 rounded-[20px] bg-[#F8FAFC] p-3">
-                    <Text className="text-[12px] uppercase tracking-[1.5px] text-[#6B7280]">
-                      Selected payment
+                  <View className="mt-3 rounded-[20px] bg-bg-elevated border border-semantic-border p-3">
+                    <Text className="text-[12px] uppercase tracking-[1.5px] text-text-secondary">
+                      Phương thức đã chọn
                     </Text>
-                    <Text className="mt-1 text-[14px] font-semibold text-[#111827]">
+                    <Text className="mt-1 text-[14px] font-semibold text-text-primary">
                       {selectedPaymentMethod?.title}
                     </Text>
                   </View>
                 </View>
 
-                <View className="mt-5">
-                  <Button
-                    title={placing ? 'Placing…' : 'Place Order'}
+                <View className="mt-5 px-4 pb-10 pt-4">
+                  <Pressable
                     onPress={handleCheckoutConfirm}
                     disabled={!canPlaceOrder}
-                  />
+                    className="bg-accent rounded-2xl py-[18px] items-center"
+                    style={{
+                      shadowColor: '#6C63FF',
+                      shadowOffset: { width: 0, height: 10 },
+                      shadowOpacity: 0.45,
+                      shadowRadius: 20,
+                      elevation: 12,
+                    }}
+                  >
+                    <Text className="text-white text-[17px] font-extrabold tracking-wider">
+                      {placing ? 'Đang đặt hàng…' : 'Đặt hàng'}
+                    </Text>
+                  </Pressable>
                 </View>
               </>
             )}
@@ -422,26 +460,26 @@ export default function CheckoutScreen() {
         </ScrollView>
 
         {showConfirm ? (
-          <View className="absolute inset-0 z-50 items-center justify-center bg-black/40 px-5">
-            <View className="w-full max-w-[420px] rounded-[28px] bg-white p-5 shadow-xl">
-              <Text className="text-[18px] font-semibold text-[#111827]">
+          <View className="absolute inset-0 z-50 items-center justify-center bg-black/70 px-5">
+            <View className="w-full max-w-[420px] rounded-[28px] bg-bg-surface border border-semantic-border p-5">
+              <Text className="text-[18px] font-semibold text-text-primary">
                 {L.errors.checkoutConfirmTitle}
               </Text>
-              <Text className="mt-2 text-[14px] leading-[22px] text-[#6B7280]">
-                Total: {formatCurrency(total)}. Are you sure?
+              <Text className="mt-2 text-[14px] leading-[22px] text-text-secondary">
+                Tổng: {formatCurrency(total)}. Bạn có chắc chắn?
               </Text>
-              <View className="mt-4 rounded-[16px] bg-[#F8FAFC] p-3">
-                <Text className="text-[12px] uppercase tracking-[1.5px] text-[#6B7280]">
-                  Order snapshot
+              <View className="mt-4 rounded-[16px] bg-bg-elevated border border-semantic-border p-3">
+                <Text className="text-[12px] uppercase tracking-[1.5px] text-text-secondary">
+                  Thông tin đơn hàng
                 </Text>
-                <Text className="mt-1 text-[13px] text-[#111827]">
+                <Text className="mt-1 text-[13px] text-text-primary">
                   {items.length} sản phẩm · {selectedPaymentMethod?.title}
                 </Text>
-                <Text className="mt-1 text-[13px] text-[#6B7280]" numberOfLines={2}>
+                <Text className="mt-1 text-[13px] text-text-secondary" numberOfLines={2}>
                   {selectedAddress?.address}, {selectedAddress?.city}
                 </Text>
                 {promoCode ? (
-                  <Text className="mt-1 text-[12px] font-semibold text-[#166534]">
+                  <Text className="mt-1 text-[12px] font-semibold text-semantic-success">
                     Promo: {promoCode}
                   </Text>
                 ) : null}
@@ -449,16 +487,16 @@ export default function CheckoutScreen() {
 
               <View className="mt-5 flex-row gap-3">
                 <Pressable
-                  className="flex-1 items-center rounded-[20px] border border-[#E5E7EB] bg-white px-4 py-3"
+                  className="flex-1 items-center rounded-[20px] border border-semantic-border bg-bg-elevated px-4 py-3"
                   onPress={() => setShowConfirm(false)}>
-                  <Text className="font-semibold text-[#111827]">{L.common.cancel}</Text>
+                  <Text className="font-semibold text-text-primary">{L.common.cancel}</Text>
                 </Pressable>
                 <Pressable
-                  className="flex-1 items-center rounded-[20px] bg-[#F97316] px-4 py-3"
+                  className="flex-1 items-center rounded-[20px] bg-accent px-4 py-3"
                   disabled={placing}
                   onPress={handleConfirmPlaceOrder}>
                   <Text className="font-semibold text-white">
-                    {placing ? 'Placing…' : L.errors.checkoutConfirmPlace}
+                    {placing ? 'Đang đặt…' : L.errors.checkoutConfirmPlace}
                   </Text>
                 </Pressable>
               </View>
@@ -473,7 +511,7 @@ export default function CheckoutScreen() {
 function SummaryRow({
   label,
   value,
-  valueClass = 'text-[#111827]',
+  valueClass = 'text-text-primary',
   total = false,
 }: {
   label: string;
@@ -485,12 +523,12 @@ function SummaryRow({
     <View className="mb-3 flex-row items-center justify-between">
       <Text
         className={
-          total ? 'text-[16px] font-semibold text-[#111827]' : 'text-[14px] text-[#6B7280]'
+          total ? 'text-[16px] font-semibold text-text-primary' : 'text-[14px] text-text-secondary'
         }>
         {label}
       </Text>
       <Text
-        className={`${total ? 'text-[20px] font-bold' : 'text-[14px] font-semibold'} ${valueClass}`}>
+        className={`${total ? 'text-[20px] font-bold text-accent' : 'text-[14px] font-semibold'} ${valueClass}`}>
         {value}
       </Text>
     </View>

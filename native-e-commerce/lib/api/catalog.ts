@@ -1,12 +1,7 @@
 import type { Category } from '~/lib/types/models';
-import type {
-  ImageSearchResult,
-  ProductDetail,
-  ProductFilter,
-  ProductListPage,
-} from '~/lib/types/products';
+import type { ProductDetail, ProductFilter, ProductListPage } from '~/lib/types/products';
 
-import { apiGet, apiPost } from '~/lib/api/client';
+import { apiGet } from '~/lib/api/client';
 
 /** Kích thước trang catalog (lưới 2–4 cột chia hết 24) */
 export const CATALOG_PAGE_SIZE = 24;
@@ -38,15 +33,4 @@ export async function fetchProducts(filter?: ProductFilter): Promise<ProductList
 
 export async function fetchProductById(id: string): Promise<ProductDetail> {
   return apiGet<ProductDetail>(`products/${encodeURIComponent(id)}`);
-}
-
-export async function searchProductsByImage(
-  imageBase64: string,
-  topK = 10
-): Promise<ImageSearchResult[]> {
-  const body = await apiPost<{ items: ImageSearchResult[] } | ImageSearchResult[]>(
-    `products/search-by-image`,
-    { image_base64: imageBase64, top_k: topK }
-  );
-  return Array.isArray(body) ? body : body.items ?? [];
 }

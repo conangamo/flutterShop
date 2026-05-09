@@ -105,8 +105,8 @@ const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 2000
         )}
 
         <View className="flex-1">
-          <Text className="text-sm font-semibold text-gray-900">{title}</Text>
-          {message && <Text className="mt-1 text-xs text-gray-600">{message}</Text>}
+          <Text className="text-sm font-semibold text-text-primary">{title}</Text>
+          {message && <Text className="mt-1 text-xs text-text-secondary">{message}</Text>}
         </View>
 
         <Pressable onPress={handleClose}>

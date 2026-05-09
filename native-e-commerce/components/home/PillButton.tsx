@@ -10,10 +10,36 @@ type Props = {
 export function PillButton({ label, icon, onPress }: Props) {
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.7}
       onPress={onPress}
-      className="flex-row items-center gap-1 rounded-[8px] bg-white px-3 py-[7px] shadow-[0px_2px_8px_0px_rgba(0,0,0,0.08)]">
-      <Text className="text-[12px] leading-[16px] text-black">{label}</Text>
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        borderRadius: 9999, // fully rounded pill
+        backgroundColor: '#1C1C28', // bg-elevated
+        borderWidth: 1,
+        borderColor: '#2A2A3A', // semantic-border
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 2,
+      }}
+    >
+      <Text 
+        style={{ 
+          fontSize: 13, 
+          lineHeight: 18, 
+          color: '#F0F0F5', // text-primary
+          fontWeight: '600',
+          letterSpacing: 0.3,
+        }}
+      >
+        {label}
+      </Text>
       {icon}
     </TouchableOpacity>
   );

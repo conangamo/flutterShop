@@ -45,22 +45,22 @@ export function FilterSheet({
 }: Props) {
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <Pressable className="flex-1 bg-black/40" onPress={onClose}>
+      <Pressable className="flex-1 bg-black/60" onPress={onClose}>
         <Pressable
           onPress={(e) => e.stopPropagation()}
-          className="absolute bottom-0 left-0 right-0 max-h-[88%] rounded-t-[28px] bg-white p-5">
+          className="absolute bottom-0 left-0 right-0 max-h-[88%] rounded-t-[28px] bg-bg-surface border-t border-semantic-border p-5">
           <View className="mb-3 items-center">
-            <View className="h-1.5 w-12 rounded-full bg-[#E5E7EB]" />
+            <View className="h-1.5 w-12 rounded-full bg-semantic-border" />
           </View>
           <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-[18px] font-bold text-[#111827]">Bộ lọc & sắp xếp</Text>
-            <Pressable onPress={onClose} className="h-9 w-9 items-center justify-center rounded-full bg-[#F3F4F6]">
-              <Ionicons name="close" size={18} color="#6B7280" />
+            <Text className="text-[18px] font-bold text-text-primary">Bộ lọc & sắp xếp</Text>
+            <Pressable onPress={onClose} className="h-9 w-9 items-center justify-center rounded-full bg-bg-elevated border border-semantic-border">
+              <Ionicons name="close" size={18} color="#8888A0" />
             </Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false} className="max-h-[460px]">
-            <Text className="mt-2 text-[13px] font-semibold uppercase tracking-[1.5px] text-[#9CA3AF]">
+            <Text className="mt-2 text-[13px] font-semibold uppercase tracking-[1.5px] text-text-secondary">
               Sắp xếp
             </Text>
             <View className="mt-2 flex-row flex-wrap gap-2">
@@ -71,11 +71,11 @@ export function FilterSheet({
                     key={opt.id}
                     onPress={() => onChange({ ...state, sort: opt.id as ProductSort })}
                     className={`rounded-full border px-3 py-1.5 ${
-                      active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
+                      active ? 'border-accent bg-accent/10' : 'border-semantic-border bg-bg-elevated'
                     }`}>
                     <Text
                       className={`text-[12px] font-semibold ${
-                        active ? 'text-[#F97316]' : 'text-[#4B5563]'
+                        active ? 'text-accent' : 'text-text-secondary'
                       }`}>
                       {opt.label}
                     </Text>
@@ -84,7 +84,7 @@ export function FilterSheet({
               })}
             </View>
 
-            <Text className="mt-5 text-[13px] font-semibold uppercase tracking-[1.5px] text-[#9CA3AF]">
+            <Text className="mt-5 text-[13px] font-semibold uppercase tracking-[1.5px] text-text-secondary">
               Size (EU)
             </Text>
             <View className="mt-2 flex-row flex-wrap gap-2">
@@ -94,10 +94,10 @@ export function FilterSheet({
                   <Pressable
                     key={sz}
                     onPress={() => onChange({ ...state, size: active ? null : sz })}
-                    className={`min-w-[48px] items-center rounded-[12px] border px-3 py-1.5 ${
-                      active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
+                    className={`min-w-[48px] items-center rounded-xl border px-3 py-1.5 ${
+                      active ? 'border-accent bg-accent/10' : 'border-semantic-border bg-bg-elevated'
                     }`}>
-                    <Text className={`text-[13px] font-semibold ${active ? 'text-[#F97316]' : 'text-[#1F2937]'}`}>
+                    <Text className={`text-[13px] font-semibold ${active ? 'text-accent' : 'text-text-primary'}`}>
                       {sz}
                     </Text>
                   </Pressable>
@@ -107,7 +107,7 @@ export function FilterSheet({
 
             {availableColors.length > 0 ? (
               <>
-                <Text className="mt-5 text-[13px] font-semibold uppercase tracking-[1.5px] text-[#9CA3AF]">
+                <Text className="mt-5 text-[13px] font-semibold uppercase tracking-[1.5px] text-text-secondary">
                   Màu sắc
                 </Text>
                 <View className="mt-2 flex-row flex-wrap gap-2">
@@ -118,11 +118,11 @@ export function FilterSheet({
                         key={c}
                         onPress={() => onChange({ ...state, color: active ? null : c })}
                         className={`rounded-full border px-3 py-1.5 ${
-                          active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
+                          active ? 'border-accent bg-accent/10' : 'border-semantic-border bg-bg-elevated'
                         }`}>
                         <Text
                           className={`text-[12px] font-semibold ${
-                            active ? 'text-[#F97316]' : 'text-[#4B5563]'
+                            active ? 'text-accent' : 'text-text-secondary'
                           }`}>
                           {c}
                         </Text>
@@ -133,7 +133,7 @@ export function FilterSheet({
               </>
             ) : null}
 
-            <Text className="mt-5 text-[13px] font-semibold uppercase tracking-[1.5px] text-[#9CA3AF]">
+            <Text className="mt-5 text-[13px] font-semibold uppercase tracking-[1.5px] text-text-secondary">
               Khoảng giá (VND)
             </Text>
             <View className="mt-2 flex-row gap-3">
@@ -155,14 +155,14 @@ export function FilterSheet({
               </View>
             </View>
 
-            <View className="mt-5 flex-row items-center justify-between rounded-[16px] bg-[#FFF7F2] px-4 py-3">
+            <View className="mt-5 flex-row items-center justify-between rounded-2xl bg-accent/10 border border-accent/20 px-4 py-3">
               <View>
-                <Text className="text-[14px] font-semibold text-[#1F2937]">Chỉ hàng còn</Text>
-                <Text className="text-[12px] text-[#6B7280]">Ẩn các size đã hết</Text>
+                <Text className="text-[14px] font-semibold text-text-primary">Chỉ hàng còn</Text>
+                <Text className="text-[12px] text-text-secondary">Ẩn các size đã hết</Text>
               </View>
               <Pressable
                 onPress={() => onChange({ ...state, inStock: !state.inStock })}
-                className={`h-7 w-12 rounded-full ${state.inStock ? 'bg-[#F97316]' : 'bg-[#E5E7EB]'}`}>
+                className={`h-7 w-12 rounded-full ${state.inStock ? 'bg-accent' : 'bg-semantic-border'}`}>
                 <View
                   className={`mt-0.5 h-6 w-6 rounded-full bg-white shadow ${
                     state.inStock ? 'ml-[22px]' : 'ml-[2px]'
