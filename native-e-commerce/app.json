@@ -26,6 +26,13 @@
           "backgroundColor": "#ffffff"
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cho phép ứng dụng truy cập thư viện ảnh để tải ảnh sản phẩm.",
+          "cameraPermission": "Cho phép ứng dụng dùng camera để chụp ảnh tìm kiếm sản phẩm."
+        }
+      ],
       "expo-web-browser",
       "expo-secure-store"
     ],

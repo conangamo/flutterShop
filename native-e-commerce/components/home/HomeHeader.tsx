@@ -5,9 +5,10 @@ type Props = {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   onSubmitSearch?: () => void;
+  onPressCamera?: () => void;
 };
 
-export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Props) {
+export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onPressCamera }: Props) {
   return (
     <>
       <View className="mt-2 flex-row items-center justify-between">
@@ -37,9 +38,17 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Prop
           onSubmitEditing={onSubmitSearch}
           returnKeyType="search"
         />
-        <TouchableOpacity activeOpacity={0.8} className="h-6 w-6 items-center justify-center">
-          <Feather name="mic" size={18} color="#7B7B7B" />
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-2">
+          <TouchableOpacity
+            activeOpacity={0.8}
+            className="h-6 w-6 items-center justify-center"
+            onPress={onPressCamera}>
+            <Feather name="camera" size={18} color="#7B7B7B" />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.8} className="h-6 w-6 items-center justify-center">
+            <Feather name="mic" size={18} color="#7B7B7B" />
+          </TouchableOpacity>
+        </View>
       </View>
     </>
   );

@@ -1,6 +1,6 @@
 import type { OrderDetail, OrderStatus } from '~/lib/types/orders';
 
-import { apiDelete, apiGet, apiPatch, apiPost } from '~/lib/api/client';
+import { apiDelete, apiFetch, apiGet, apiPatch, apiPost } from '~/lib/api/client';
 
 export type AdminOrderSummary = {
   id: string;
@@ -286,6 +286,134 @@ export async function adminCreatePromo(payload: {
   isActive?: boolean;
 }): Promise<{ id: string }> {
   return apiPost<{ id: string }>('admin/promos', payload);
+}
+
+export async function adminUpdatePromo(
+  promoId: string,
+  payload: Partial<{
+    discountType: 'fixed' | 'percent';
+    discountValue: number;
+    maxDiscount: number | null;
+    minOrderTotal: number;
+    usageLimit: number | null;
+    startsAt: string | null;
+    endsAt: string | null;
+    isActive: boolean;
+  }>
+): Promise<{ id: string }> {
+  return apiPatch<{ id: string }>(`admin/promos/${encodeURIComponent(promoId)}`, payload);
+}
+
+export async function adminSetPromoActive(
+  promoId: string,
+  isActive: boolean
+): Promise<{ id: string; isActive: boolean }> {
+  return apiPatch<{ id: string; isActive: boolean }>(
+    `admin/promos/${encodeURIComponent(promoId)}/active`,
+    { isActive }
+  );
+}
+
+export async function adminArchivePromo(
+  promoId: string
+): Promise<{ id: string; archived: boolean }> {
+  return apiPost<{ id: string; archived: boolean }>(
+    `admin/promos/${encodeURIComponent(promoId)}/archive`,
+    {}
+  );
+}
+
+export async function adminDeletePromo(
+  promoId: string
+): Promise<{ id: string; deleted: boolean; archived?: boolean }> {
+  return apiDelete<{ id: string; deleted: boolean; archived?: boolean }>(
+    `admin/promos/${encodeURIComponent(promoId)}`
+  );
+}
+
+export type PromoUsageRow = {
+  id: string;
+  orderId: string;
+  orderCode: string;
+  userId: string;
+  discountApplied: number;
+  createdAt: string;
+};
+
+export async function adminPromoUsages(
+  promoId: string,
+  params?: { limit?: number; offset?: number }
+): Promise<PromoUsageRow[]> {
+  const q = new URLSearchParams();
+  if (params?.limit != null) q.set('limit', String(params.limit));
+  if (params?.offset != null) q.set('offset', String(params.offset));
+  const suffix = q.toString();
+  return apiGet<PromoUsageRow[]>(
+    `admin/promos/${encodeURIComponent(promoId)}/usages${suffix ? `?${suffix}` : ''}`
+  );
+}
+
+export type AdminCategoryRow = {
+  id: string;
+  label: string;
+  slug: string;
+  image?: string;
+  parentId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function adminListCategories(): Promise<AdminCategoryRow[]> {
+  return apiGet<AdminCategoryRow[]>('admin/categories');
+}
+
+export async function adminCreateCategory(payload: {
+  id: string;
+  label: string;
+  slug: string;
+  image?: string;
+  parentId?: string | null;
+}): Promise<{ id: string }> {
+  return apiPost<{ id: string }>('admin/categories', payload);
+}
+
+export async function adminUpdateCategory(
+  categoryId: string,
+  payload: Partial<{
+    label: string;
+    slug: string;
+    image: string | null;
+    parentId: string | null;
+  }>
+): Promise<{ id: string }> {
+  return apiPatch<{ id: string }>(`admin/categories/${encodeURIComponent(categoryId)}`, payload);
+}
+
+export async function adminDeleteCategory(
+  categoryId: string
+): Promise<{ id: string; deleted: boolean }> {
+  return apiDelete<{ id: string; deleted: boolean }>(
+    `admin/categories/${encodeURIComponent(categoryId)}`
+  );
+}
+
+export async function adminUploadMedia(file: {
+  uri: string;
+  name?: string;
+  type?: string;
+}, folder = 'products'): Promise<{ url: string; path: string }> {
+  const formData = new FormData();
+  formData.append('file', {
+    uri: file.uri,
+    name: file.name ?? `upload-${Date.now()}.jpg`,
+    type: file.type ?? 'image/jpeg',
+  } as never);
+  const q = encodeURIComponent(folder);
+  return apiFetch<{ url: string; path: string }>(`admin/media/upload?folder=${q}`, {
+    method: 'POST',
+    body: formData,
+    headers: {},
+  });
 }
 
 export async function adminDashboardSummary(): Promise<{
