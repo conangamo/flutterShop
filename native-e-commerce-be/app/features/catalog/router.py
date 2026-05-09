@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -9,6 +10,11 @@ from app.core.exceptions import AppError
 from app.features.catalog import service as catalog_svc
 
 router = APIRouter()
+
+
+class ImageSearchRequest(BaseModel):
+    image_base64: str = Field(min_length=20, description="JPEG/PNG base64 string without data URI prefix")
+    top_k: int = Field(default=10, ge=1, le=20)
 
 
 @router.get("/categories")
@@ -75,3 +81,18 @@ def product_detail(
     if row is None:
         raise AppError("not_found", "Product not found", status_code=404)
     return row
+
+
+@router.post("/products/search-by-image")
+def search_by_image(
+    payload: ImageSearchRequest,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+) -> dict:
+    items = catalog_svc.search_products_by_image(
+        db,
+        store_id,
+        image_base64=payload.image_base64,
+        top_k=payload.top_k,
+    )
+    return {"items": items}

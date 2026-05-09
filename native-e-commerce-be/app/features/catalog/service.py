@@ -1,5 +1,12 @@
 from __future__ import annotations
 
+import base64
+import json
+import math
+import os
+from pathlib import Path
+
+import requests
 from sqlalchemy import and_, exists, func, select, tuple_
 from sqlalchemy.orm import Session
 
@@ -67,6 +74,276 @@ def _load_images_bulk(db: Session, keys: list[tuple[int, str]]) -> dict[tuple[in
 
 
 _SORT_OPTIONS = {"newest", "price_asc", "price_desc", "rating_desc", "name_asc"}
+HF_TIMEOUT_SECONDS = 30
+HF_CLIP_URL = os.getenv(
+    "HF_CLIP_ENDPOINT",
+    "https://router.huggingface.co/hf-inference/models/openai/clip-vit-base-patch32",
+)
+HF_VIT_URL = os.getenv(
+    "HF_VIT_ENDPOINT",
+    "https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224",
+)
+
+_META_CACHE: dict[str, object] = {"mtime": None, "items": [], "mode": "numeric"}
+
+
+def _slugify_local(value: str) -> str:
+    out = []
+    prev_dash = False
+    for ch in (value or "").strip().lower():
+        if ch.isalnum():
+            out.append(ch)
+            prev_dash = False
+        elif not prev_dash:
+            out.append("-")
+            prev_dash = True
+    slug = "".join(out).strip("-")
+    return slug or "item"
+
+
+def _metadata_path() -> Path:
+    p = os.getenv("AI_METADATA_PATH", "").strip()
+    if p:
+        return Path(p)
+    # default: <workspace>/database/metadata_shoes.json
+    return Path(__file__).resolve().parents[4] / "database" / "metadata_shoes.json"
+
+
+def _coerce_numeric_vector(raw: object) -> list[float] | None:
+    if isinstance(raw, list) and raw and isinstance(raw[0], (int, float)):
+        return [float(x) for x in raw]
+    if isinstance(raw, list) and len(raw) == 1 and isinstance(raw[0], list):
+        nested = raw[0]
+        if nested and isinstance(nested[0], (int, float)):
+            return [float(x) for x in nested]
+    return None
+
+
+def _coerce_label_scores(raw: object) -> dict[str, float] | None:
+    if not isinstance(raw, list):
+        return None
+    pairs: dict[str, float] = {}
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        score = item.get("score")
+        if not label or not isinstance(score, (int, float)):
+            continue
+        pairs[label] = float(score)
+    return pairs or None
+
+
+def _cosine_numeric(a: list[float], b: list[float]) -> float:
+    n = min(len(a), len(b))
+    if n <= 0:
+        return 0.0
+    dot = 0.0
+    na = 0.0
+    nb = 0.0
+    for i in range(n):
+        ai = a[i]
+        bi = b[i]
+        dot += ai * bi
+        na += ai * ai
+        nb += bi * bi
+    if na <= 0 or nb <= 0:
+        return 0.0
+    return dot / math.sqrt(na * nb)
+
+
+def _cosine_labels(a: dict[str, float], b: dict[str, float]) -> float:
+    if not a or not b:
+        return 0.0
+    keys = set(a.keys()) | set(b.keys())
+    dot = 0.0
+    na = 0.0
+    nb = 0.0
+    for k in keys:
+        av = a.get(k, 0.0)
+        bv = b.get(k, 0.0)
+        dot += av * bv
+        na += av * av
+        nb += bv * bv
+    if na <= 0 or nb <= 0:
+        return 0.0
+    return dot / math.sqrt(na * nb)
+
+
+def _load_metadata_vectors() -> tuple[str, list[dict]]:
+    path = _metadata_path()
+    if not path.exists():
+        return "numeric", []
+    mtime = path.stat().st_mtime
+    if _META_CACHE["mtime"] == mtime and _META_CACHE["items"]:
+        return str(_META_CACHE["mode"]), list(_META_CACHE["items"])  # type: ignore[arg-type]
+
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    items_raw = raw.get("items", []) if isinstance(raw, dict) else []
+    parsed_items: list[dict] = []
+    mode = "numeric"
+
+    for it in items_raw:
+        if not isinstance(it, dict):
+            continue
+        sid = str(it.get("id", "")).strip()
+        if not sid:
+            continue
+        vec = _coerce_numeric_vector(it.get("vector"))
+        if vec is not None:
+            parsed_items.append(
+                {
+                    "shoe_id": sid,
+                    "name": str(it.get("name", "")).strip(),
+                    "image_url": str(it.get("image_url", "")).strip(),
+                    "numeric": vec,
+                    "labels": None,
+                }
+            )
+            continue
+        labels = _coerce_label_scores(it.get("vector"))
+        if labels is not None:
+            mode = "labels"
+            parsed_items.append(
+                {
+                    "shoe_id": sid,
+                    "name": str(it.get("name", "")).strip(),
+                    "image_url": str(it.get("image_url", "")).strip(),
+                    "numeric": None,
+                    "labels": labels,
+                }
+            )
+
+    _META_CACHE["mtime"] = mtime
+    _META_CACHE["mode"] = mode
+    _META_CACHE["items"] = parsed_items
+    return mode, parsed_items
+
+
+def _hf_infer_vector(image_base64: str, *, mode: str) -> object:
+    token = os.getenv("HF_TOKEN", "").strip()
+    if not token:
+        raise ValueError("Missing HF_TOKEN in backend environment")
+    endpoint = HF_CLIP_URL if mode == "numeric" else HF_VIT_URL
+    payload = {"inputs": f"data:image/jpeg;base64,{image_base64}"}
+    resp = requests.post(
+        endpoint,
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+        json=payload,
+        timeout=HF_TIMEOUT_SECONDS,
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+
+def search_products_by_image(
+    db: Session,
+    store_id: int,
+    *,
+    image_base64: str,
+    top_k: int = 10,
+) -> list[dict]:
+    mode, meta_items = _load_metadata_vectors()
+    if not meta_items:
+        return []
+
+    # sanity check base64
+    base64.b64decode(image_base64, validate=True)
+    query_raw = _hf_infer_vector(image_base64, mode=mode)
+    if mode == "numeric":
+        q_vec = _coerce_numeric_vector(query_raw)
+        if not q_vec:
+            return []
+    else:
+        q_labels = _coerce_label_scores(query_raw)
+        if not q_labels:
+            return []
+
+    scored: list[tuple[float, str, str, str]] = []
+    for item in meta_items:
+        if mode == "numeric":
+            vec = item.get("numeric")
+            if not isinstance(vec, list):
+                continue
+            score = _cosine_numeric(q_vec, vec)
+        else:
+            labels = item.get("labels")
+            if not isinstance(labels, dict):
+                continue
+            score = _cosine_labels(q_labels, labels)
+        scored.append(
+            (
+                score,
+                str(item.get("shoe_id", "")),
+                str(item.get("name", "")),
+                str(item.get("image_url", "")),
+            )
+        )
+
+    scored.sort(key=lambda x: x[0], reverse=True)
+    best = scored[: max(1, int(top_k))]
+
+    # map metadata id -> product id in DB (supports shoes_dim import id pattern dim-<id>)
+    id_candidates: set[str] = set()
+    for _, sid, _, _ in best:
+        id_candidates.add(sid)
+        id_candidates.add(f"dim-{_slugify_local(sid)}")
+
+    prod_rows = (
+        db.execute(
+            select(Product).where(
+                Product.store_id == store_id,
+                Product.deleted_at.is_(None),
+                Product.id.in_(list(id_candidates)),
+            )
+        )
+        .scalars()
+        .all()
+    )
+    by_id = {p.id: p for p in prod_rows}
+    # Fallback maps: khi catalog hiện tại không dùng ID metadata (vd shopify import)
+    by_image = {str(p.default_image or "").strip(): p for p in prod_rows if p.default_image}
+    by_name = {str(p.name or "").strip().lower(): p for p in prod_rows if p.name}
+
+    out: list[dict] = []
+    seen_product_ids: set[str] = set()
+    for score, sid, fallback_name, fallback_image in best:
+        p = by_id.get(sid) or by_id.get(f"dim-{_slugify_local(sid)}")
+        if p is None and fallback_image:
+            # Ưu tiên map theo URL ảnh (độ chính xác cao hơn name)
+            p = by_image.get(fallback_image.strip())
+        if p is None and fallback_name:
+            # Fallback theo name exact-lower
+            p = by_name.get(fallback_name.strip().lower())
+        if p is None and fallback_name:
+            # Fallback cuối: ilike theo name từ metadata
+            p = (
+                db.execute(
+                    select(Product).where(
+                        Product.store_id == store_id,
+                        Product.deleted_at.is_(None),
+                        Product.name.ilike(f"%{fallback_name}%"),
+                    )
+                )
+                .scalars()
+                .first()
+            )
+        if p is None:
+            # Không có product trong DB thì bỏ qua để đảm bảo click điều hướng được.
+            continue
+        if p.id in seen_product_ids:
+            continue
+        seen_product_ids.add(p.id)
+        out.append(
+            {
+                "product_id": p.id,
+                "name": p.name or fallback_name,
+                "image": p.default_image or fallback_image,
+                "price": _master_price(p),
+                "score": round(float(score), 6),
+            }
+        )
+    return out
 
 
 def _catalog_price_expr():

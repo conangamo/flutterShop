@@ -3,9 +3,10 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
+from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Query, Request, UploadFile
 from pydantic import BaseModel, Field
 from sqlalchemy import and_, case, func, select
 from sqlalchemy.orm import Session
@@ -15,11 +16,13 @@ from app.core.deps import get_admin_user, get_staff_or_admin_user, get_store_id
 from app.core.exceptions import AppError
 from app.db.models import (
     InventoryAdjustment,
+    Category,
     Order,
     OrderItem,
     Product,
     ProductVariant,
     PromoCode,
+    PromoRedemption,
     User,
 )
 from app.db.models import User as UserRow
@@ -29,6 +32,8 @@ from app.features.users import service as users_svc
 from app.features.users.schemas import AdminUserActiveIn, AdminUserRoleIn, UserOut
 
 router = APIRouter()
+
+MEDIA_ROOT = Path(__file__).resolve().parents[3] / "media" / "uploads"
 
 
 def _serialize_user(row: User) -> UserOut:
@@ -104,6 +109,132 @@ def patch_user_role(
         actor_user_id=admin.id,
     )
     return _serialize_user(row)
+
+
+# ----------------------------- CATEGORIES ------------------------------------
+
+
+class CategoryCreateIn(BaseModel):
+    id: str
+    label: str
+    slug: str
+    image: str | None = None
+    parent_id: str | None = Field(default=None, alias="parentId")
+    model_config = {"populate_by_name": True}
+
+
+class CategoryUpdateIn(BaseModel):
+    label: str | None = None
+    slug: str | None = None
+    image: str | None = None
+    parent_id: str | None = Field(default=None, alias="parentId")
+    model_config = {"populate_by_name": True}
+
+
+@router.get("/categories")
+def admin_list_categories(
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_staff_or_admin_user),
+) -> list[dict]:
+    rows = db.execute(
+        select(Category)
+        .where(Category.store_id == store_id, Category.deleted_at.is_(None))
+        .order_by(Category.label.asc())
+    ).scalars().all()
+    return [
+        {
+            "id": c.id,
+            "label": c.label,
+            "slug": c.slug,
+            "image": c.image or "",
+            "parentId": c.parent_id,
+            "createdAt": c.created_at.replace(tzinfo=timezone.utc).isoformat(),
+            "updatedAt": c.updated_at.replace(tzinfo=timezone.utc).isoformat(),
+        }
+        for c in rows
+    ]
+
+
+@router.post("/categories")
+def admin_create_category(
+    payload: CategoryCreateIn,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_admin_user),
+) -> dict:
+    row = db.execute(
+        select(Category).where(
+            Category.store_id == store_id,
+            (Category.id == payload.id) | (Category.slug == payload.slug),
+        )
+    ).scalar_one_or_none()
+    if row is not None:
+        raise AppError("conflict", "Category id/slug already exists", status_code=409)
+    db.add(
+        Category(
+            store_id=store_id,
+            id=payload.id.strip(),
+            label=payload.label.strip(),
+            slug=payload.slug.strip(),
+            image=payload.image.strip() if payload.image else None,
+            parent_id=payload.parent_id.strip() if payload.parent_id else None,
+        )
+    )
+    db.commit()
+    return {"id": payload.id}
+
+
+@router.patch("/categories/{category_id}")
+def admin_update_category(
+    category_id: str,
+    payload: CategoryUpdateIn,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_admin_user),
+) -> dict:
+    row = db.execute(
+        select(Category)
+        .where(Category.store_id == store_id, Category.id == category_id, Category.deleted_at.is_(None))
+        .with_for_update()
+    ).scalar_one_or_none()
+    if row is None:
+        raise AppError("not_found", "Category not found", status_code=404)
+    data = payload.model_dump(exclude_unset=True, by_alias=False)
+    if "slug" in data and data["slug"]:
+        exists = db.execute(
+            select(Category).where(
+                Category.store_id == store_id,
+                Category.slug == data["slug"],
+                Category.id != category_id,
+                Category.deleted_at.is_(None),
+            )
+        ).scalar_one_or_none()
+        if exists is not None:
+            raise AppError("conflict", "Category slug already exists", status_code=409)
+    for k, v in data.items():
+        setattr(row, k, v.strip() if isinstance(v, str) else v)
+    db.commit()
+    return {"id": row.id}
+
+
+@router.delete("/categories/{category_id}")
+def admin_delete_category(
+    category_id: str,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_admin_user),
+) -> dict:
+    row = db.execute(
+        select(Category)
+        .where(Category.store_id == store_id, Category.id == category_id, Category.deleted_at.is_(None))
+        .with_for_update()
+    ).scalar_one_or_none()
+    if row is None:
+        raise AppError("not_found", "Category not found", status_code=404)
+    row.deleted_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"id": row.id, "deleted": True}
 
 
 # ----------------------------- ORDERS ----------------------------------------
@@ -666,6 +797,18 @@ class PromoCreateIn(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class PromoUpdateIn(BaseModel):
+    discount_type: str | None = Field(default=None, alias="discountType")
+    discount_value: Decimal | None = Field(default=None, alias="discountValue", ge=0)
+    max_discount: Decimal | None = Field(default=None, alias="maxDiscount", ge=0)
+    min_order_total: Decimal | None = Field(default=None, alias="minOrderTotal", ge=0)
+    usage_limit: int | None = Field(default=None, alias="usageLimit", ge=1)
+    starts_at: datetime | None = Field(default=None, alias="startsAt")
+    ends_at: datetime | None = Field(default=None, alias="endsAt")
+    is_active: bool | None = Field(default=None, alias="isActive")
+    model_config = {"populate_by_name": True}
+
+
 @router.get("/promos")
 def admin_list_promos(
     db: Session = Depends(get_db),
@@ -718,6 +861,163 @@ def admin_create_promo(
     db.add(row)
     db.commit()
     return {"id": row.id}
+
+
+@router.patch("/promos/{promo_id}")
+def admin_update_promo(
+    promo_id: str,
+    payload: PromoUpdateIn,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_admin_user),
+) -> dict:
+    row = db.execute(
+        select(PromoCode)
+        .where(PromoCode.id == promo_id, PromoCode.store_id == store_id)
+        .with_for_update()
+    ).scalar_one_or_none()
+    if row is None:
+        raise AppError("not_found", "Promo not found", status_code=404)
+    data = payload.model_dump(exclude_unset=True, by_alias=False)
+    if "discount_type" in data and data["discount_type"] not in {"fixed", "percent"}:
+        raise AppError("bad_request", "discountType must be fixed|percent", status_code=400)
+    for k, v in data.items():
+        setattr(row, k, v)
+    db.commit()
+    return {"id": row.id}
+
+
+@router.patch("/promos/{promo_id}/active")
+def admin_set_promo_active(
+    promo_id: str,
+    payload: dict,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_admin_user),
+) -> dict:
+    if "isActive" not in payload and "is_active" not in payload:
+        raise AppError("bad_request", "Missing isActive", status_code=400)
+    is_active = bool(payload.get("isActive", payload.get("is_active")))
+    row = db.execute(
+        select(PromoCode)
+        .where(PromoCode.id == promo_id, PromoCode.store_id == store_id)
+        .with_for_update()
+    ).scalar_one_or_none()
+    if row is None:
+        raise AppError("not_found", "Promo not found", status_code=404)
+    row.is_active = is_active
+    db.commit()
+    return {"id": row.id, "isActive": row.is_active}
+
+
+@router.post("/promos/{promo_id}/archive")
+def admin_archive_promo(
+    promo_id: str,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_admin_user),
+) -> dict:
+    row = db.execute(
+        select(PromoCode)
+        .where(PromoCode.id == promo_id, PromoCode.store_id == store_id)
+        .with_for_update()
+    ).scalar_one_or_none()
+    if row is None:
+        raise AppError("not_found", "Promo not found", status_code=404)
+    row.is_active = False
+    db.commit()
+    return {"id": row.id, "archived": True}
+
+
+@router.delete("/promos/{promo_id}")
+def admin_delete_promo(
+    promo_id: str,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_admin_user),
+) -> dict:
+    row = db.execute(
+        select(PromoCode).where(PromoCode.id == promo_id, PromoCode.store_id == store_id).with_for_update()
+    ).scalar_one_or_none()
+    if row is None:
+        raise AppError("not_found", "Promo not found", status_code=404)
+    if int(row.used_count or 0) > 0:
+        # tránh mất lịch sử; chuyển thành archive
+        row.is_active = False
+        db.commit()
+        return {"id": row.id, "deleted": False, "archived": True}
+    db.delete(row)
+    db.commit()
+    return {"id": promo_id, "deleted": True}
+
+
+@router.get("/promos/{promo_id}/usages")
+def admin_promo_usages(
+    promo_id: str,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_staff_or_admin_user),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+) -> list[dict]:
+    promo = db.execute(
+        select(PromoCode).where(PromoCode.id == promo_id, PromoCode.store_id == store_id)
+    ).scalar_one_or_none()
+    if promo is None:
+        raise AppError("not_found", "Promo not found", status_code=404)
+    rows = db.execute(
+        select(PromoRedemption, Order.code, Order.user_id)
+        .join(Order, Order.id == PromoRedemption.order_id)
+        .where(PromoRedemption.store_id == store_id, PromoRedemption.promo_id == promo_id)
+        .order_by(PromoRedemption.created_at.desc())
+        .offset(offset)
+        .limit(limit)
+    ).all()
+    return [
+        {
+            "id": r.PromoRedemption.id,
+            "orderId": r.PromoRedemption.order_id,
+            "orderCode": r.code,
+            "userId": r.user_id,
+            "discountApplied": float(r.PromoRedemption.discount_applied),
+            "createdAt": r.PromoRedemption.created_at.replace(tzinfo=timezone.utc).isoformat(),
+        }
+        for r in rows
+    ]
+
+
+# ----------------------------- MEDIA -----------------------------------------
+
+
+@router.post("/media/upload")
+async def admin_upload_media(
+    request: Request,
+    file: UploadFile = File(...),
+    folder: str = Query(default="products"),
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    admin: UserRow = Depends(get_staff_or_admin_user),
+) -> dict:
+    content_type = (file.content_type or "").lower()
+    if content_type not in {"image/jpeg", "image/png", "image/webp"}:
+        raise AppError("bad_request", "Only jpeg/png/webp supported", status_code=400)
+    ext = ".jpg"
+    if content_type == "image/png":
+        ext = ".png"
+    elif content_type == "image/webp":
+        ext = ".webp"
+    safe_folder = "".join(ch for ch in folder if ch.isalnum() or ch in {"-", "_"}) or "products"
+    out_dir = MEDIA_ROOT / safe_folder
+    out_dir.mkdir(parents=True, exist_ok=True)
+    name = f"{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:10]}{ext}"
+    out_path = out_dir / name
+    data = await file.read()
+    if not data:
+        raise AppError("bad_request", "Empty file", status_code=400)
+    out_path.write_bytes(data)
+    base = str(request.base_url).rstrip("/")
+    rel = f"/media/uploads/{safe_folder}/{name}"
+    return {"url": f"{base}{rel}", "path": rel}
 
 
 @router.get("/dashboard/summary")

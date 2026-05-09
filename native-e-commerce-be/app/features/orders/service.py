@@ -25,7 +25,8 @@ from app.features.orders.schemas import OrderCreateIn
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
     "pending": {"processing", "cancelled"},
     "processing": {"shipped", "cancelled"},
-    "shipped": {"delivered", "cancelled"},
+    # Đang giao thì KHÔNG cho hủy, chỉ có thể hoàn tất giao.
+    "shipped": {"delivered"},
     "delivered": set(),
     "cancelled": set(),
 }
@@ -450,7 +451,8 @@ def update_order_status(
     now = datetime.now(timezone.utc)
 
     try:
-        if new_status == "cancelled" and current in {"pending", "processing", "shipped"}:
+        # Chỉ hoàn kho khi hủy từ pending/processing.
+        if new_status == "cancelled" and current in {"pending", "processing"}:
             items = db.execute(
                 select(OrderItem).where(
                     OrderItem.order_id == order.id,

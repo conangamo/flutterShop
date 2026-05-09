@@ -14,7 +14,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-HF_API_URL = "https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224"
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/openai/clip-vit-base-patch32"
 HF_TIMEOUT_SECONDS = 30
 HF_SLEEP_SECONDS = 1.5
 
@@ -70,17 +70,26 @@ def image_to_base64(image_bytes: bytes) -> str:
     return base64.b64encode(image_bytes).decode("utf-8")
 
 
-def get_hf_vector(image_url: str, hf_token: str) -> Any:
+def normalize_embedding(raw: Any) -> list[float]:
+    if isinstance(raw, list) and raw and isinstance(raw[0], (int, float)):
+        return [float(x) for x in raw]
+    if isinstance(raw, list) and len(raw) == 1 and isinstance(raw[0], list):
+        nested = raw[0]
+        if nested and isinstance(nested[0], (int, float)):
+            return [float(x) for x in nested]
+    raise ValueError(f"Unexpected embedding response: {type(raw).__name__}")
+
+
+def get_hf_vector(image_url: str, hf_token: str) -> list[float]:
     image_bytes = fetch_image_bytes(image_url)
-    image_b64 = image_to_base64(image_bytes)
+    _ = image_to_base64(image_bytes)  # keep explicit base64 step for traceability
     headers = {
         "Authorization": f"Bearer {hf_token}",
-        "Content-Type": "application/json",
+        "Content-Type": "image/jpeg",
     }
-    payload = {"inputs": image_b64}
-    resp = requests.post(HF_API_URL, headers=headers, json=payload, timeout=HF_TIMEOUT_SECONDS)
+    resp = requests.post(HF_API_URL, headers=headers, data=image_bytes, timeout=HF_TIMEOUT_SECONDS)
     resp.raise_for_status()
-    return resp.json()
+    return normalize_embedding(resp.json())
 
 
 def main() -> None:
@@ -100,6 +109,17 @@ def main() -> None:
         default="database/metadata_shoes.json",
         help="Checkpoint/output JSON path",
     )
+    parser.add_argument(
+        "--force-rebuild",
+        action="store_true",
+        help="Build lại từ đầu, bỏ qua checkpoint cũ trong output.",
+    )
+    parser.add_argument(
+        "--max-items",
+        type=int,
+        default=0,
+        help="Giới hạn số item để test nhanh (0 = toàn bộ).",
+    )
     args = parser.parse_args()
 
     hf_token = os.getenv("HF_TOKEN", "").strip()
@@ -114,7 +134,11 @@ def main() -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     rows = read_input_rows(csv_path)
-    checkpoint = load_checkpoint(output_path)
+    if args.max_items > 0:
+        rows = rows[: args.max_items]
+
+    checkpoint = {"source": "shoes_dim.csv", "model": HF_API_URL, "items": []} if args.force_rebuild else load_checkpoint(output_path)
+    checkpoint["model"] = HF_API_URL
     done_ids = {str(x.get("id")) for x in checkpoint.get("items", []) if x.get("id")}
     pending = [r for r in rows if r["id"] not in done_ids]
     total = len(rows)
