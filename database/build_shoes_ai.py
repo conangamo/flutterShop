@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import base64
+import json
+import os
+import time
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
+
+import pandas as pd
+import requests
+from dotenv import load_dotenv
+
+HF_API_URL = "https://router.huggingface.co/hf-inference/models/google/vit-base-patch16-224"
+HF_TIMEOUT_SECONDS = 30
+HF_SLEEP_SECONDS = 1.5
+
+
+def is_valid_url(raw: str) -> bool:
+    try:
+        u = urlparse((raw or "").strip())
+        return u.scheme in {"http", "https"} and bool(u.netloc)
+    except Exception:
+        return False
+
+
+def read_input_rows(csv_path: Path) -> list[dict[str, str]]:
+    df = pd.read_csv(csv_path, usecols=["id", "name", "image_url"])
+    df = df.dropna(subset=["id", "name", "image_url"])
+    df["id"] = df["id"].astype(str).str.strip()
+    df["name"] = df["name"].astype(str).str.strip()
+    df["image_url"] = df["image_url"].astype(str).str.strip()
+    df = df[(df["id"] != "") & (df["name"] != "")]
+    df = df[df["image_url"].apply(is_valid_url)]
+    return df.to_dict(orient="records")
+
+
+def load_checkpoint(meta_path: Path) -> dict[str, Any]:
+    if not meta_path.exists():
+        return {"source": "shoes_dim.csv", "model": HF_API_URL, "items": []}
+    raw = json.loads(meta_path.read_text(encoding="utf-8"))
+    # Backward-compatible: allow previous list-only format.
+    if isinstance(raw, list):
+        return {"source": "shoes_dim.csv", "model": HF_API_URL, "items": raw}
+    if isinstance(raw, dict):
+        raw.setdefault("source", "shoes_dim.csv")
+        raw.setdefault("model", HF_API_URL)
+        raw.setdefault("items", [])
+        return raw
+    return {"source": "shoes_dim.csv", "model": HF_API_URL, "items": []}
+
+
+def save_checkpoint(meta_path: Path, payload: dict[str, Any]) -> None:
+    meta_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def fetch_image_bytes(image_url: str, timeout: int = HF_TIMEOUT_SECONDS) -> bytes:
+    resp = requests.get(image_url, timeout=timeout)
+    resp.raise_for_status()
+    return resp.content
+
+
+def image_to_base64(image_bytes: bytes) -> str:
+    return base64.b64encode(image_bytes).decode("utf-8")
+
+
+def get_hf_vector(image_url: str, hf_token: str) -> Any:
+    image_bytes = fetch_image_bytes(image_url)
+    image_b64 = image_to_base64(image_bytes)
+    headers = {
+        "Authorization": f"Bearer {hf_token}",
+        "Content-Type": "application/json",
+    }
+    payload = {"inputs": image_b64}
+    resp = requests.post(HF_API_URL, headers=headers, json=payload, timeout=HF_TIMEOUT_SECONDS)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def main() -> None:
+    script_dir = Path(__file__).resolve().parent
+    # Ưu tiên đọc biến từ database/.env để tránh phụ thuộc current working directory.
+    load_dotenv(script_dir / ".env")
+    load_dotenv()
+
+    parser = argparse.ArgumentParser(description="Build shoe AI metadata with HF Inference API.")
+    parser.add_argument(
+        "--csv",
+        default="database/dataMauTrenMang/shoes_dim.csv",
+        help="Path to shoes_dim.csv",
+    )
+    parser.add_argument(
+        "--output",
+        default="database/metadata_shoes.json",
+        help="Checkpoint/output JSON path",
+    )
+    args = parser.parse_args()
+
+    hf_token = os.getenv("HF_TOKEN", "").strip()
+    if not hf_token:
+        raise ValueError("Thiếu HF_TOKEN. Hãy tạo file .env và set HF_TOKEN=...")
+
+    csv_path = Path(args.csv)
+    if not csv_path.exists():
+        raise FileNotFoundError(f"CSV không tồn tại: {csv_path}")
+
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    rows = read_input_rows(csv_path)
+    checkpoint = load_checkpoint(output_path)
+    done_ids = {str(x.get("id")) for x in checkpoint.get("items", []) if x.get("id")}
+    pending = [r for r in rows if r["id"] not in done_ids]
+    total = len(rows)
+    done_now = total - len(pending)
+
+    print(f"Tổng hợp lệ: {total} | Đã có checkpoint: {done_now} | Còn lại: {len(pending)}")
+
+    for row in pending:
+        shoe_id = row["id"]
+        shoe_name = row["name"]
+        image_url = row["image_url"]
+        idx = done_now + 1
+        try:
+            vector = get_hf_vector(image_url=image_url, hf_token=hf_token)
+            record = {
+                "id": shoe_id,
+                "name": shoe_name,
+                "image_url": image_url,
+                "vector": vector,
+                "processed_at": int(time.time()),
+            }
+            checkpoint["items"].append(record)
+            save_checkpoint(output_path, checkpoint)
+            done_now += 1
+            print(f"[{idx}/{total}] Da xu ly: {shoe_name}")
+        except Exception as exc:
+            print(f"[{idx}/{total}] Loi voi {shoe_id} ({shoe_name}): {exc}")
+        finally:
+            # Chống rate-limit theo yêu cầu.
+            time.sleep(HF_SLEEP_SECONDS)
+
+    print(f"Hoan tat. Da luu: {output_path}")
+
+
+if __name__ == "__main__":
+    main()
