@@ -25,9 +25,9 @@ export function CategorySelectionModal({
 
         <View style={styles.sheet}>
           <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-xl font-bold">Chọn danh mục</Text>
+            <Text className="text-xl font-bold text-text-primary">Chọn danh mục</Text>
             <TouchableOpacity onPress={onClose}>
-              <FontAwesome name="close" size={24} color="#000" />
+              <FontAwesome name="close" size={24} color="#F0F0F5" />
             </TouchableOpacity>
           </View>
 
@@ -36,30 +36,30 @@ export function CategorySelectionModal({
             keyExtractor={(item) => item}
             renderItem={({ item }) => (
               <TouchableOpacity
-                className="py-3 px-4 border-b border-gray-200"
+                className="py-3 px-4 border-b border-semantic-border"
                 onPress={() => onSelectCategory(item)}
               >
-                <Text className="text-base text-gray-800">{item}</Text>
+                <Text className="text-base text-text-primary">{item}</Text>
               </TouchableOpacity>
             )}
             style={styles.list}
             scrollEnabled
             ListEmptyComponent={
               <View className="py-8 items-center">
-                <Text className="text-gray-500 mb-4">Chưa có danh mục nào</Text>
+                <Text className="text-text-secondary mb-4">Chưa có danh mục nào</Text>
                 {categoriesLoading && (
-                  <Text className="text-xs text-gray-400">Đang tải...</Text>
+                  <Text className="text-xs text-text-muted">Đang tải...</Text>
                 )}
               </View>
             }
           />
 
           <TouchableOpacity
-            className="mt-6 bg-green-600 rounded-lg py-3 items-center flex-row justify-center"
+            className="mt-6 bg-accent rounded-button py-3 items-center flex-row justify-center"
             onPress={onAddNewCategory}
           >
             <FontAwesome name="plus" size={18} color="white" />
-            <Text className="text-black font-semibold ml-2">Thêm danh mục mới</Text>
+            <Text className="text-white font-semibold ml-2">Thêm danh mục mới</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: '#13131A',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 24,

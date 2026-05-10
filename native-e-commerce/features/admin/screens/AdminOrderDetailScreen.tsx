@@ -20,7 +20,7 @@ import { formatCurrency, formatDate } from '~/lib/utils/formatters';
 const NEXT_STATES: Record<OrderStatus, OrderStatus[]> = {
   pending: ['processing', 'cancelled'],
   processing: ['shipped', 'cancelled'],
-  shipped: ['delivered'],
+  shipped: ['delivered', 'cancelled'],
   delivered: [],
   cancelled: [],
 };

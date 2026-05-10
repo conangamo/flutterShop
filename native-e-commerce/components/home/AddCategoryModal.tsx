@@ -38,15 +38,16 @@ export function AddCategoryModal({
 
         <View style={styles.card}>
           <View style={styles.headerRow}>
-            <Text className="text-lg font-bold">Thêm danh mục mới</Text>
+            <Text className="text-lg font-bold text-text-primary">Thêm danh mục mới</Text>
             <TouchableOpacity onPress={onCancel} disabled={loading}>
-              <FontAwesome name="close" size={22} color="#111827" />
+              <FontAwesome name="close" size={22} color="#F0F0F5" />
             </TouchableOpacity>
           </View>
 
           <TextInput
-            className="border border-gray-300 rounded-lg px-4 py-3 mb-4"
+            className="border border-semantic-border bg-bg-elevated rounded-button px-4 py-3 mb-4 text-text-primary"
             placeholder="Nhập tên danh mục"
+            placeholderTextColor="#8888A0"
             value={value}
             onChangeText={onChangeText}
             editable={!loading}
@@ -54,15 +55,15 @@ export function AddCategoryModal({
 
           <View style={styles.buttonRow}>
             <TouchableOpacity
-              className="flex-1 bg-gray-300 rounded-lg py-3 items-center"
+              className="flex-1 bg-bg-elevated rounded-button py-3 items-center"
               onPress={onCancel}
               disabled={loading}
             >
-              <Text className="font-semibold text-gray-700">Hủy</Text>
+              <Text className="font-semibold text-text-secondary">Hủy</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              className={`flex-1 rounded-lg py-3 items-center ${loading ? 'bg-blue-400' : 'bg-blue-600'}`}
+              className={`flex-1 rounded-button py-3 items-center ${loading ? 'bg-accent/60' : 'bg-accent'}`}
               onPress={onAdd}
               disabled={loading}
             >
@@ -91,7 +92,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 480,
-    backgroundColor: '#fff',
+    backgroundColor: '#13131A',
     borderRadius: 16,
     padding: 24,
   },

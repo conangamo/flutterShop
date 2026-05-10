@@ -4,7 +4,7 @@ import { getAccessToken } from '~/lib/api/token';
 
 type Json = Record<string, unknown> | unknown[] | string | number | boolean | null;
 
-const API_TIMEOUT_MS = 25000;
+const API_TIMEOUT_MS = 15000;
 
 function joinUrl(path: string): string {
   const p = path.startsWith('/') ? path.slice(1) : path;
@@ -28,8 +28,7 @@ export async function apiFetch<T = Json>(
   const { skipAuth, headers: hdrs, ...rest } = init;
   const headers = new Headers(hdrs);
   headers.set('X-Store-Id', STORE_ID);
-  const isFormData = typeof FormData !== 'undefined' && rest.body instanceof FormData;
-  if (!headers.has('Content-Type') && rest.body != null && !isFormData) {
+  if (!headers.has('Content-Type') && rest.body != null) {
     headers.set('Content-Type', 'application/json');
   }
 

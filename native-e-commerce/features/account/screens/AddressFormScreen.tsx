@@ -44,7 +44,7 @@ export default function AddressFormScreen() {
       } else {
         await addressStorage.createAddressPartial({ name, phone, address, city, isDefault: false });
       }
-      addToast('success', L.common.success, 'Address saved');
+      addToast('success', L.common.success, 'Đã lưu địa chỉ');
       setTimeout(() => router.replace('/addresses'), 1200);
     } catch (e) {
       const msg = e instanceof ApiError ? resolveApiError(e, locale) : L.errors.addressSaveFailed;
@@ -54,27 +54,47 @@ export default function AddressFormScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: id ? 'Edit Address' : 'New Address' }} />
-      <View className="flex-1 bg-white p-4">
-        <Text className="mb-2 font-semibold">Name</Text>
-        <TextInput value={name} onChangeText={setName} className="mb-3 rounded border p-3" />
+      <Stack.Screen options={{ title: id ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới' }} />
+      <View className="flex-1 bg-bg-primary p-4">
+        <Text className="mb-2 font-semibold text-text-secondary text-xs uppercase tracking-widest">Tên người nhận</Text>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          className="mb-3 rounded-xl border border-semantic-border bg-bg-elevated p-3.5 text-text-primary"
+          placeholderTextColor="#8888A0"
+          placeholder="Nhập tên người nhận"
+        />
 
-        <Text className="mb-2 font-semibold">Phone</Text>
+        <Text className="mb-2 font-semibold text-text-secondary text-xs uppercase tracking-widest">Số điện thoại</Text>
         <TextInput
           value={phone}
           onChangeText={setPhone}
-          className="mb-3 rounded border p-3"
+          className="mb-3 rounded-xl border border-semantic-border bg-bg-elevated p-3.5 text-text-primary"
           keyboardType="phone-pad"
+          placeholderTextColor="#8888A0"
+          placeholder="Nhập số điện thoại"
         />
 
-        <Text className="mb-2 font-semibold">Address</Text>
-        <TextInput value={address} onChangeText={setAddress} className="mb-3 rounded border p-3" />
+        <Text className="mb-2 font-semibold text-text-secondary text-xs uppercase tracking-widest">Địa chỉ</Text>
+        <TextInput
+          value={address}
+          onChangeText={setAddress}
+          className="mb-3 rounded-xl border border-semantic-border bg-bg-elevated p-3.5 text-text-primary"
+          placeholderTextColor="#8888A0"
+          placeholder="Nhập địa chỉ chi tiết"
+        />
 
-        <Text className="mb-2 font-semibold">City</Text>
-        <TextInput value={city} onChangeText={setCity} className="mb-3 rounded border p-3" />
+        <Text className="mb-2 font-semibold text-text-secondary text-xs uppercase tracking-widest">Thành phố</Text>
+        <TextInput
+          value={city}
+          onChangeText={setCity}
+          className="mb-3 rounded-xl border border-semantic-border bg-bg-elevated p-3.5 text-text-primary"
+          placeholderTextColor="#8888A0"
+          placeholder="Nhập thành phố"
+        />
 
-        <Pressable className="mt-4 items-center rounded-lg bg-[#007AFF] py-3" onPress={save}>
-          <Text className="font-semibold text-white">Save Address</Text>
+        <Pressable className="mt-4 items-center rounded-2xl bg-accent py-3.5" onPress={save}>
+          <Text className="font-bold text-white text-[15px]">Lưu địa chỉ</Text>
         </Pressable>
       </View>
     </>

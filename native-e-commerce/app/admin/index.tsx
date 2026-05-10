@@ -110,12 +110,6 @@ export default function AdminHomeScreen() {
           onPress={() => router.push('/admin/inventory' as never)}
         />
         <AdminTile
-          icon="albums-outline"
-          title="Danh mục"
-          subtitle="CRUD category và ảnh danh mục"
-          onPress={() => router.push('/admin/categories' as never)}
-        />
-        <AdminTile
           icon="pricetags-outline"
           title="Khuyến mãi"
           subtitle="Tạo và quản lý promo code"

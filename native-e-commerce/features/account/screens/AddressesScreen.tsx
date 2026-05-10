@@ -25,10 +25,10 @@ export default function AddressesScreen() {
   }
 
   function onDelete(id: string) {
-    Alert.alert('Delete', 'Delete this address?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('Xóa địa chỉ', 'Bạn có chắc muốn xóa địa chỉ này?', [
+      { text: 'Hủy', style: 'cancel' },
       {
-        text: 'Delete',
+        text: 'Xóa',
         style: 'destructive',
         onPress: async () => {
           await addressStorage.deleteAddress(id);
@@ -40,32 +40,32 @@ export default function AddressesScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Addresses' }} />
-      <View className="flex-1 bg-white p-4">
+      <Stack.Screen options={{ title: 'Sổ địa chỉ' }} />
+      <View className="flex-1 bg-bg-primary p-4">
         <Pressable
-          className="mb-4 items-center rounded-lg bg-[#007AFF] py-3"
+          className="mb-4 items-center rounded-2xl bg-accent py-3.5"
           onPress={() => router.push('/addresses/new')}>
-          <Text className="font-semibold text-white">Add Address</Text>
+          <Text className="font-bold text-white text-[15px]">Thêm địa chỉ mới</Text>
         </Pressable>
 
         <FlatList
           data={items}
           keyExtractor={(i) => i.id}
           renderItem={({ item }) => (
-            <View className="mb-3 rounded-lg border bg-white p-3">
-              <Text className="font-semibold">{item.name}</Text>
-              <Text className="text-sm text-gray-500">{item.phone}</Text>
-              <Text className="mt-1">{item.address}</Text>
+            <View className="mb-3 rounded-2xl border border-semantic-border bg-bg-surface p-4">
+              <Text className="font-semibold text-text-primary">{item.name}</Text>
+              <Text className="text-sm text-text-secondary">{item.phone}</Text>
+              <Text className="mt-1 text-text-secondary">{item.address}</Text>
               <View className="mt-3 flex-row gap-3">
                 <Pressable
-                  className="rounded bg-orange-500 px-3 py-2"
+                  className="rounded-xl bg-accent px-4 py-2"
                   onPress={() => router.push(`/addresses/${item.id}/edit`)}>
-                  <Text className="text-white">Edit</Text>
+                  <Text className="text-white font-semibold">Sửa</Text>
                 </Pressable>
                 <Pressable
-                  className="rounded bg-red-500 px-3 py-2"
+                  className="rounded-xl bg-accent-coral px-4 py-2"
                   onPress={() => onDelete(item.id)}>
-                  <Text className="text-white">Delete</Text>
+                  <Text className="text-white font-semibold">Xóa</Text>
                 </Pressable>
               </View>
             </View>

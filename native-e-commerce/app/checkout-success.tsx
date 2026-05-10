@@ -1,6 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { View, Text, Pressable, ScrollView } from 'react-native';
+import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 export default function CheckoutSuccess() {
   const router = useRouter();
@@ -30,106 +31,127 @@ export default function CheckoutSuccess() {
           headerShadowVisible: false,
         }}
       />
-      <View className="flex-1 bg-gradient-to-b from-[#FFF8F4] to-white">
-        <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
-          <View className="items-center justify-center px-5 pb-8 pt-12">
+      <View className="flex-1 bg-bg-primary items-center justify-center px-6">
+        <ScrollView showsVerticalScrollIndicator={false} className="flex-1" contentContainerStyle={{ paddingTop: 60, paddingBottom: 40 }}>
+          <View className="items-center justify-center">
             {/* Success Icon */}
-            <View className="mb-6 h-20 w-20 items-center justify-center rounded-full bg-[#12B76A]">
-              <Ionicons name="checkmark" size={40} color="white" />
-            </View>
+            <Animated.View
+              entering={FadeIn.duration(600)}
+              className="mb-6 h-24 w-24 items-center justify-center rounded-full bg-semantic-success/10 border-2 border-semantic-success"
+              style={{
+                shadowColor: '#3ECF8E',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: 0.3,
+                shadowRadius: 20,
+                elevation: 10,
+              }}
+            >
+              <Text className="text-semantic-success text-4xl">✓</Text>
+            </Animated.View>
 
             {/* Main Message */}
-            <Text className="text-center text-[32px] font-bold text-[#111827]">
-              {checkoutCopy.successTitle}
-            </Text>
-            <Text className="mt-3 text-center text-[16px] leading-[24px] text-[#6B7280]">
-              {checkoutCopy.successMessage}
-            </Text>
+            <Animated.View entering={FadeInDown.duration(500).delay(200)}>
+              <Text className="text-center text-[32px] font-extrabold text-text-primary mb-2">
+                {checkoutCopy.successTitle}
+              </Text>
+              <Text className="text-center text-[16px] leading-[24px] text-text-secondary mb-8">
+                {checkoutCopy.successMessage}
+              </Text>
+            </Animated.View>
 
             {/* Order Details Card */}
-            <View className="mt-8 w-full rounded-[28px] bg-white p-6 shadow-sm">
-              <View className="mb-4 border-b border-[#E5E7EB] pb-4">
-                <Text className="text-[12px] uppercase tracking-[1.5px] text-[#6B7280]">
-                  {checkoutCopy.orderId}
-                </Text>
-                <Text className="mt-2 text-[18px] font-semibold text-[#111827]" numberOfLines={1}>
-                  {orderId}
-                </Text>
-              </View>
-              {promoCode ? (
-                <View className="mb-4 rounded-[14px] bg-[#ECFDF3] p-3">
-                  <Text className="text-[12px] uppercase tracking-[1.5px] text-[#166534]">
-                    Promo applied
+            <Animated.View entering={FadeInDown.duration(500).delay(300)} className="w-full">
+              <View className="rounded-[28px] bg-bg-surface border border-semantic-border p-6">
+                <View className="mb-4 border-b border-semantic-border pb-4">
+                  <Text className="text-[12px] uppercase tracking-[1.5px] text-text-secondary">
+                    {checkoutCopy.orderId}
                   </Text>
-                  <Text className="mt-1 text-[13px] font-semibold text-[#166534]">{promoCode}</Text>
+                  <Text className="mt-2 text-[18px] font-semibold text-accent" numberOfLines={1}>
+                    {orderId}
+                  </Text>
                 </View>
-              ) : null}
+                {promoCode ? (
+                  <View className="mb-4 rounded-[14px] bg-semantic-success/10 border border-semantic-success/25 p-3">
+                    <Text className="text-[12px] uppercase tracking-[1.5px] text-semantic-success">
+                      Promo applied
+                    </Text>
+                    <Text className="mt-1 text-[13px] font-semibold text-semantic-success">{promoCode}</Text>
+                  </View>
+                ) : null}
 
-              <View>
-                <Text className="text-[12px] uppercase tracking-[1.5px] text-[#6B7280]">
-                  {checkoutCopy.nextSteps}
-                </Text>
-                <View className="mt-3 gap-3">
-                  <View className="flex-row items-start gap-3">
-                    <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-[#FFF4ED]">
-                      <Text className="text-[12px] font-bold text-[#F97316]">1</Text>
+                <View>
+                  <Text className="text-[12px] uppercase tracking-[1.5px] text-text-secondary">
+                    {checkoutCopy.nextSteps}
+                  </Text>
+                  <View className="mt-3 gap-3">
+                    <View className="flex-row items-start gap-3">
+                      <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-accent/15 border border-accent/30">
+                        <Text className="text-[12px] font-bold text-accent">1</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-[14px] font-semibold text-text-primary">
+                          {checkoutCopy.step1Title}
+                        </Text>
+                        <Text className="mt-1 text-[13px] text-text-secondary">
+                          {checkoutCopy.step1Desc}
+                        </Text>
+                      </View>
                     </View>
-                    <View className="flex-1">
-                      <Text className="text-[14px] font-semibold text-[#111827]">
-                        {checkoutCopy.step1Title}
-                      </Text>
-                      <Text className="mt-1 text-[13px] text-[#6B7280]">
-                        {checkoutCopy.step1Desc}
-                      </Text>
+                    <View className="flex-row items-start gap-3">
+                      <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-accent/15 border border-accent/30">
+                        <Text className="text-[12px] font-bold text-accent">2</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-[14px] font-semibold text-text-primary">
+                          {checkoutCopy.step2Title}
+                        </Text>
+                        <Text className="mt-1 text-[13px] text-text-secondary">
+                          {checkoutCopy.step2Desc}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                  <View className="flex-row items-start gap-3">
-                    <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-[#FFF4ED]">
-                      <Text className="text-[12px] font-bold text-[#F97316]">2</Text>
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-[14px] font-semibold text-[#111827]">
-                        {checkoutCopy.step2Title}
-                      </Text>
-                      <Text className="mt-1 text-[13px] text-[#6B7280]">
-                        {checkoutCopy.step2Desc}
-                      </Text>
-                    </View>
-                  </View>
-                  <View className="flex-row items-start gap-3">
-                    <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-[#FFF4ED]">
-                      <Text className="text-[12px] font-bold text-[#F97316]">3</Text>
-                    </View>
-                    <View className="flex-1">
-                      <Text className="text-[14px] font-semibold text-[#111827]">
-                        {checkoutCopy.step3Title}
-                      </Text>
-                      <Text className="mt-1 text-[13px] text-[#6B7280]">
-                        {checkoutCopy.step3Desc}
-                      </Text>
+                    <View className="flex-row items-start gap-3">
+                      <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-accent/15 border border-accent/30">
+                        <Text className="text-[12px] font-bold text-accent">3</Text>
+                      </View>
+                      <View className="flex-1">
+                        <Text className="text-[14px] font-semibold text-text-primary">
+                          {checkoutCopy.step3Title}
+                        </Text>
+                        <Text className="mt-1 text-[13px] text-text-secondary">
+                          {checkoutCopy.step3Desc}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
-            </View>
+            </Animated.View>
 
             {/* Action Buttons */}
-            <View className="mt-8 w-full gap-3">
+            <Animated.View entering={FadeInDown.duration(500).delay(400)} className="mt-8 w-full gap-3">
               <Pressable
-                className="items-center rounded-[24px] bg-[#F97316] px-6 py-4"
+                className="items-center rounded-2xl bg-accent px-8 py-4 w-full"
+                style={{
+                  shadowColor: '#6C63FF',
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 16,
+                  elevation: 10,
+                }}
                 onPress={() => router.push(`/order/${encodeURIComponent(orderId)}`)}>
-                <Text className="font-semibold text-white">
+                <Text className="font-extrabold text-[15px] text-white">
                   {checkoutCopy.viewOrder}
                 </Text>
               </Pressable>
               <Pressable
-                className="items-center rounded-[24px] border border-[#E5E7EB] bg-white px-6 py-4"
+                className="items-center rounded-2xl border border-semantic-border bg-bg-elevated px-8 py-4 w-full"
                 onPress={() => router.replace('/(tabs)')}>
-                <Text className="font-semibold text-[#111827]">
+                <Text className="font-semibold text-[15px] text-text-primary">
                   {checkoutCopy.continueShopping}
                 </Text>
               </Pressable>
-            </View>
+            </Animated.View>
           </View>
         </ScrollView>
       </View>

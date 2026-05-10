@@ -4,17 +4,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 
 import { AppInput } from '~/components/ui/AppInput';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
-import {
-  adminArchivePromo,
-  adminCreatePromo,
-  adminDeletePromo,
-  adminListPromos,
-  adminPromoUsages,
-  adminSetPromoActive,
-  adminUpdatePromo,
-  type PromoRow,
-  type PromoUsageRow,
-} from '~/lib/api/admin';
+import { adminCreatePromo, adminListPromos, type PromoRow } from '~/lib/api/admin';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
 import { formatCurrency } from '~/lib/utils/formatters';
@@ -28,9 +18,6 @@ export default function AdminPromosScreen() {
   const [code, setCode] = useState('');
   const [discountValue, setDiscountValue] = useState('50000');
   const [promos, setPromos] = useState<PromoRow[]>([]);
-  const [selectedPromoId, setSelectedPromoId] = useState<string | null>(null);
-  const [usageRows, setUsageRows] = useState<PromoUsageRow[]>([]);
-  const [usageLoading, setUsageLoading] = useState(false);
 
   const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (mode === 'initial') setLoading(true);
@@ -66,29 +53,6 @@ export default function AdminPromosScreen() {
       await load('refresh');
     } catch (e) {
       setError(e instanceof ApiError ? resolveApiError(e, locale) : 'Không tạo được promo');
-    }
-  };
-
-  const loadUsages = async (promoId: string) => {
-    setUsageLoading(true);
-    try {
-      const rows = await adminPromoUsages(promoId, { limit: 30 });
-      setUsageRows(rows);
-      setSelectedPromoId(promoId);
-    } catch (e) {
-      setError(e instanceof ApiError ? resolveApiError(e, locale) : 'Không tải được usage');
-    } finally {
-      setUsageLoading(false);
-    }
-  };
-
-  const updateValue = async (promo: PromoRow) => {
-    const nextValue = Math.max(0, Math.round(promo.discountValue + 10000));
-    try {
-      await adminUpdatePromo(promo.id, { discountValue: nextValue });
-      await load('refresh');
-    } catch (e) {
-      setError(e instanceof ApiError ? resolveApiError(e, locale) : 'Không cập nhật được promo');
     }
   };
 
@@ -138,60 +102,10 @@ export default function AdminPromosScreen() {
                   <Text className="mt-1 text-[12px] text-[#6B7280]">
                     min order {formatCurrency(p.minOrderTotal)} · {p.isActive ? 'active' : 'inactive'}
                   </Text>
-                  <View className="mt-3 flex-row flex-wrap gap-2">
-                    <Pressable
-                      onPress={() => void updateValue(p)}
-                      className="rounded-full border border-[#E5E7EB] px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-[#374151]">+10k discount</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => void adminSetPromoActive(p.id, !p.isActive).then(() => load('refresh'))}
-                      className="rounded-full border border-[#FED7AA] px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-[#C2410C]">
-                        {p.isActive ? 'Deactivate' : 'Activate'}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => void adminArchivePromo(p.id).then(() => load('refresh'))}
-                      className="rounded-full border border-[#E5E7EB] px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-[#4B5563]">Archive</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => void adminDeletePromo(p.id).then(() => load('refresh'))}
-                      className="rounded-full border border-[#FECACA] px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-[#DC2626]">Delete</Text>
-                    </Pressable>
-                    <Pressable
-                      onPress={() => void loadUsages(p.id)}
-                      className="rounded-full border border-[#BFDBFE] px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-[#1D4ED8]">Usage details</Text>
-                    </Pressable>
-                  </View>
                 </View>
               ))}
             </View>
           )}
-          {selectedPromoId ? (
-            <View className="mt-5 rounded-[20px] bg-white p-4 shadow-sm">
-              <Text className="text-[15px] font-semibold text-[#1F2937]">Lịch sử dùng promo</Text>
-              {usageLoading ? (
-                <LoadingBlock label="Đang tải usage..." />
-              ) : usageRows.length === 0 ? (
-                <Text className="mt-2 text-[12px] text-[#6B7280]">Chưa có lượt dùng cho promo này.</Text>
-              ) : (
-                <View className="mt-2 gap-2">
-                  {usageRows.map((u) => (
-                    <View key={u.id} className="rounded-[12px] bg-[#F9FAFB] p-3">
-                      <Text className="text-[12px] font-semibold text-[#111827]">
-                        {u.orderCode} · {formatCurrency(u.discountApplied)}
-                      </Text>
-                      <Text className="text-[11px] text-[#6B7280]">{u.userId}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          ) : null}
         </View>
       </ScrollView>
     </>

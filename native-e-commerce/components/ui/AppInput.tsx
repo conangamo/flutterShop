@@ -7,16 +7,48 @@ type Props = TextInputProps & {
 
 export function AppInput({ label, error, className = '', ...props }: Props) {
   return (
-    <View>
-      {label ? <Text className="mb-1 text-[12px] font-semibold text-[#6B7280]">{label}</Text> : null}
+    <View style={{ gap: 8 }}>
+      {label ? (
+        <Text 
+          style={{ 
+            fontSize: 13, 
+            fontWeight: '600', 
+            color: '#8888A0', // text-secondary
+            letterSpacing: 0.3,
+          }}
+        >
+          {label}
+        </Text>
+      ) : null}
       <TextInput
         {...props}
-        placeholderTextColor="#9CA3AF"
-        className={`rounded-[14px] border px-3 py-2 text-[14px] text-[#1F2937] ${
-          error ? 'border-[#FCA5A5] bg-[#FFF1F2]' : 'border-[#E5E7EB] bg-[#F9FAFB]'
-        } ${className}`}
+        placeholderTextColor="#5A5A70"
+        style={{
+          backgroundColor: error ? 'rgba(255, 101, 132, 0.08)' : '#1C1C28', // bg-elevated
+          borderWidth: 1,
+          borderColor: error ? '#FF6584' : '#2A2A3A', // semantic-border
+          borderRadius: 16, // rounded-xl
+          paddingHorizontal: 16,
+          paddingVertical: 16,
+          fontSize: 15,
+          color: '#F0F0F5', // text-primary
+          fontWeight: '500',
+          letterSpacing: 0.2,
+        }}
+        className={className}
       />
-      {error ? <Text className="mt-1 text-[12px] text-[#B91C1C]">{error}</Text> : null}
+      {error ? (
+        <Text 
+          style={{ 
+            fontSize: 12, 
+            color: '#FF6584', 
+            fontWeight: '500',
+            letterSpacing: 0.2,
+          }}
+        >
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 }

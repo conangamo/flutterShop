@@ -1,7 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { memo } from 'react';
-import { Image, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, View, Pressable } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { formatCurrency } from '~/lib/utils/formatters';
 import type { ProductSummary } from '~/lib/types/products';
@@ -14,59 +19,90 @@ type Props = {
 function ProductCardBase({ product, cardWidth }: Props) {
   const router = useRouter();
   const bestStock = product.variants.reduce((max, v) => Math.max(max, v.stock), 0);
+  
+  // --- Press animation for premium interaction feedback ---
+  const scaleValue = useSharedValue(1);
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleValue.value }],
+  }));
+  
   return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      style={cardWidth ? { width: cardWidth } : undefined}
-      className="rounded-[16px] border border-[#EEF2F7] bg-white p-[8px] shadow-sm"
-      onPress={() => router.push(`/product/${encodeURIComponent(product.id)}`)}>
-      <View>
-        <Image
-          source={{ uri: product.image }}
-          className="h-[150px] w-full rounded-[12px]"
-          resizeMode="cover"
-        />
-        {bestStock > 0 ? (
-          <View className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1">
-            <Text className="text-[10px] font-semibold text-[#166534]">
-              Còn hàng
-            </Text>
+    <Animated.View
+      style={[animatedCardStyle]}
+      className="w-[48%] bg-[#13131A] rounded-2xl border border-[#2A2A3A] overflow-hidden shadow-lg"
+    >
+      <Pressable
+        onPress={() => router.push(`/product/${encodeURIComponent(product.id)}`)}
+        onPressIn={() => { scaleValue.value = withSpring(0.97); }}
+        onPressOut={() => { scaleValue.value = withSpring(1.0); }}
+      >
+        {/* === PRODUCT IMAGE SECTION === */}
+        <View className="w-full aspect-[4/3] bg-[#0A0A0F] overflow-hidden rounded-b-2xl">
+          <Image
+            source={{ uri: product.image }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+          
+          {/* Discount Badge - Top Left */}
+          {product.discount && (
+            <View className="absolute top-2 left-2 bg-[#FF6584]/20 rounded-full px-2 py-1">
+              <Text className="text-[#FF6584] text-[9px] font-bold">
+                {product.discount}
+              </Text>
+            </View>
+          )}
+          
+          {/* Stock Badge - Top Right */}
+          <View className="absolute top-2 right-2 rounded-full px-2 py-1 bg-[#13131A]/90 border border-[#2A2A3A]/80">
+            {bestStock > 0 ? (
+              <Text className="text-[#3ECF8E] text-[9px] font-bold">
+                Còn hàng
+              </Text>
+            ) : (
+              <Text className="text-[#FF6584] text-[9px] font-bold">
+                Hết hàng
+              </Text>
+            )}
           </View>
-        ) : (
-          <View className="absolute right-2 top-2 rounded-full bg-white/95 px-2 py-1">
-            <Text className="text-[10px] font-semibold text-[#B91C1C]">
-              Hết hàng
+        </View>
+        
+        {/* === PRODUCT INFO SECTION === */}
+        <View className="p-3 flex-col flex-1">
+          {/* Product Title */}
+          <Text
+            numberOfLines={1}
+            className="text-[#F0F0F5] text-[15px] font-bold mb-1 leading-tight"
+          >
+            {product.name}
+          </Text>
+          
+          {/* Product Description */}
+          <Text
+            numberOfLines={1}
+            className="text-[#8888A0] text-[12px] mb-2"
+          >
+            {product.description}
+          </Text>
+          
+          {/* Price & Rating - Bottom Aligned */}
+          <View className="mt-auto">
+            {/* Price */}
+            <Text className="text-[#6C63FF] text-[16px] font-bold mb-1">
+              {formatCurrency(product.price)}
             </Text>
+            
+            {/* Rating Row - Minimalist Shopee Style */}
+            <View className="flex-row items-center gap-1">
+              <Ionicons name="star" size={12} color="#FFD700" />
+              <Text className="text-[#8888A0] text-[11px] font-medium">
+                {product.rating.toFixed(1)} ({product.reviews})
+              </Text>
+            </View>
           </View>
-        )}
-      </View>
-
-      <View className="mt-3 min-h-[116px] gap-1">
-        <Text className="text-[14px] font-semibold text-[#232327]" numberOfLines={2}>
-          {product.name}
-        </Text>
-        <Text className="text-[12px] leading-[16px] text-[#6A6A6A]" numberOfLines={1}>
-          {product.description}
-        </Text>
-        <View className="mt-1 flex-row items-center gap-2">
-          <Text className="text-[15px] font-semibold text-[#232327]">
-            {formatCurrency(product.price)}
-          </Text>
-          {product.discount ? (
-            <Text className="text-[12px] text-[#F83758]">{product.discount}</Text>
-          ) : null}
         </View>
-        <View className="flex-row items-center gap-1">
-          <Ionicons name="star" size={14} color="#FFC107" />
-          <Ionicons name="star" size={14} color="#FFC107" />
-          <Ionicons name="star" size={14} color="#FFC107" />
-          <Ionicons name="star" size={14} color="#FFC107" />
-          <Text className="text-[12px] text-[#575757]">
-            {product.rating.toFixed(1)} {product.reviews}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+      </Pressable>
+    </Animated.View>
   );
 }
 

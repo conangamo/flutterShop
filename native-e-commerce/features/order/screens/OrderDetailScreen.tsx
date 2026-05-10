@@ -21,16 +21,16 @@ import { formatCurrency, formatDate } from '~/lib/utils/formatters';
 function statusBadgeColor(status: OrderStatus) {
   switch (status) {
     case 'delivered':
-      return { bg: '#DCFCE7', fg: '#166534' };
+      return { bg: 'bg-semantic-success/10', border: 'border-semantic-success/25', text: 'text-semantic-success' };
     case 'shipped':
-      return { bg: '#FEF3C7', fg: '#92400E' };
+      return { bg: 'bg-semantic-warning/10', border: 'border-semantic-warning/25', text: 'text-semantic-warning' };
     case 'processing':
-      return { bg: '#DBEAFE', fg: '#1D4ED8' };
+      return { bg: 'bg-accent/10', border: 'border-accent/25', text: 'text-accent' };
     case 'cancelled':
-      return { bg: '#FEE2E2', fg: '#991B1B' };
+      return { bg: 'bg-accent-coral/10', border: 'border-accent-coral/25', text: 'text-accent-coral' };
     case 'pending':
     default:
-      return { bg: '#F3F4F6', fg: '#374151' };
+      return { bg: 'bg-bg-elevated', border: 'border-semantic-border', text: 'text-text-muted' };
   }
 }
 
@@ -108,9 +108,9 @@ export default function OrderDetailScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Order Details' }} />
-        <View className="flex-1 items-center justify-center bg-white">
-          <ActivityIndicator size="large" color="#F97316" />
+        <Stack.Screen options={{ title: 'Chi tiết đơn hàng' }} />
+        <View className="flex-1 items-center justify-center bg-bg-primary">
+          <ActivityIndicator size="large" color="#6C63FF" />
         </View>
       </>
     );
@@ -119,17 +119,17 @@ export default function OrderDetailScreen() {
   if (error || !order) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Order Details' }} />
-        <View className="flex-1 items-center justify-center bg-white px-6">
-          <Text className="text-[18px] font-semibold text-[#1F2937]">
+        <Stack.Screen options={{ title: 'Chi tiết đơn hàng' }} />
+        <View className="flex-1 items-center justify-center bg-bg-primary px-6">
+          <Text className="text-[18px] font-semibold text-text-primary">
             {L.orders.detailNotFoundTitle}
           </Text>
-          <Text className="mt-2 text-center text-[14px] text-[#6B7280]">
+          <Text className="mt-2 text-center text-[14px] text-text-secondary">
             {error ?? L.orders.detailNotFoundHint}
           </Text>
           <Pressable
             onPress={() => router.back()}
-            className="mt-4 rounded-full bg-[#F97316] px-5 py-2.5">
+            className="mt-4 rounded-2xl bg-accent-coral px-5 py-2.5">
             <Text className="text-[13px] font-semibold text-white">{L.orders.detailGoBack}</Text>
           </Pressable>
         </View>
@@ -142,43 +142,43 @@ export default function OrderDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Order Details' }} />
+      <Stack.Screen options={{ title: 'Chi tiết đơn hàng' }} />
 
       <ScrollView
-        className="flex-1 bg-[#F4F4F4]"
+        className="flex-1 bg-bg-primary"
+        contentContainerStyle={{ paddingBottom: 100, paddingTop: 8 }}
+        showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} tintColor="#F97316" />
+          <RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} tintColor="#6C63FF" />
         }>
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
+        <View className="mt-3 rounded-[28px] bg-bg-surface border border-semantic-border p-4 mx-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="text-[16px] font-bold text-[#1F2937]">#{order.code}</Text>
-              <Text className="mt-1 text-[12px] text-[#6B7280]">{formatDate(order.date)}</Text>
+              <Text className="text-[16px] font-bold text-text-primary">#{order.code}</Text>
+              <Text className="mt-1 text-[12px] text-text-secondary">{formatDate(order.date)}</Text>
             </View>
-            <View
-              style={{ backgroundColor: badge.bg }}
-              className="rounded-full px-3 py-1.5">
-              <Text style={{ color: badge.fg }} className="text-[12px] font-semibold capitalize">
+            <View className={`rounded-full px-3 py-1.5 border ${badge.bg} ${badge.border}`}>
+              <Text className={`text-[12px] font-semibold capitalize ${badge.text}`}>
                 {order.status}
               </Text>
             </View>
           </View>
 
           {order.tracking ? (
-            <View className="mt-3 rounded-[18px] bg-[#FFF7F2] px-3 py-2.5">
-              <Text className="text-[11px] uppercase tracking-[1.5px] text-[#F97316]">
-                Tracking number
+            <View className="mt-3 rounded-[18px] bg-accent/10 border border-accent/20 px-3 py-2.5">
+              <Text className="text-[11px] uppercase tracking-[1.5px] text-accent">
+                Mã vận đơn
               </Text>
-              <Text className="mt-1 text-[14px] font-semibold text-[#1F2937]">{order.tracking}</Text>
+              <Text className="mt-1 text-[14px] font-semibold text-text-primary">{order.tracking}</Text>
             </View>
           ) : null}
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Tiến trình giao hàng</Text>
+        <View className="mt-3 rounded-[28px] bg-bg-surface border border-semantic-border p-4 mx-4">
+          <Text className="text-[16px] font-semibold text-text-primary">Tiến trình giao hàng</Text>
           <View className="mt-3">
             {order.timeline.length === 0 ? (
-              <Text className="text-[13px] text-[#6B7280]">Chưa có cập nhật.</Text>
+              <Text className="text-[13px] text-text-secondary">Chưa có cập nhật.</Text>
             ) : (
               order.timeline.map((event, index) => {
                 const last = index === order.timeline.length - 1;
@@ -186,18 +186,18 @@ export default function OrderDetailScreen() {
                   <View key={`${event.date}-${index}`} className="flex-row">
                     <View className="mr-3 items-center">
                       <View
-                        className={`h-3 w-3 rounded-full ${event.completed ? 'bg-[#16A34A]' : 'bg-[#E5E7EB]'}`}
+                        className={`h-3 w-3 rounded-full ${event.completed ? 'bg-semantic-success' : 'bg-bg-elevated border border-semantic-border'}`}
                       />
                       {!last ? (
                         <View
-                          className={`mt-1 w-[2px] flex-1 ${event.completed ? 'bg-[#16A34A]' : 'bg-[#E5E7EB]'}`}
+                          className={`mt-1 w-[2px] flex-1 ${event.completed ? 'bg-semantic-success' : 'bg-semantic-border'}`}
                           style={{ minHeight: 32 }}
                         />
                       ) : null}
                     </View>
                     <View className="flex-1 pb-3">
-                      <Text className="text-[14px] font-semibold text-[#1F2937]">{event.status}</Text>
-                      <Text className="text-[12px] text-[#6B7280]">{formatDate(event.date)}</Text>
+                      <Text className="text-[14px] font-semibold text-text-primary">{event.status}</Text>
+                      <Text className="text-[12px] text-text-secondary">{formatDate(event.date)}</Text>
                     </View>
                   </View>
                 );
@@ -206,62 +206,62 @@ export default function OrderDetailScreen() {
           </View>
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Sản phẩm</Text>
+        <View className="mt-3 rounded-[28px] bg-bg-surface border border-semantic-border p-4 mx-4">
+          <Text className="text-[16px] font-semibold text-text-primary">Sản phẩm</Text>
           {order.items.map((item) => (
             <View
               key={item.id}
-              className="mt-3 flex-row items-center gap-3 rounded-[18px] bg-[#F9FAFB] p-3">
+              className="mt-3 flex-row items-center gap-3 rounded-[18px] bg-bg-elevated border border-semantic-border p-3">
               {item.image ? (
                 <Image source={{ uri: item.image }} className="h-16 w-16 rounded-[12px]" />
               ) : (
-                <View className="h-16 w-16 rounded-[12px] bg-[#E5E7EB]" />
+                <View className="h-16 w-16 rounded-[12px] bg-bg-primary" />
               )}
               <View className="flex-1">
-                <Text className="text-[14px] font-semibold text-[#1F2937]" numberOfLines={2}>
+                <Text className="text-[14px] font-semibold text-text-primary" numberOfLines={2}>
                   {item.name}
                 </Text>
                 <View className="mt-1 flex-row flex-wrap gap-1.5">
                   {item.size ? (
-                    <View className="rounded-full bg-[#FFF4ED] px-2 py-0.5">
-                      <Text className="text-[11px] font-semibold text-[#F97316]">
-                        Size {item.size}
+                    <View className="rounded-full bg-accent/15 border border-accent/30 px-2 py-0.5">
+                      <Text className="text-[11px] font-semibold text-accent">
+                        Cỡ {item.size}
                       </Text>
                     </View>
                   ) : null}
                   {item.color ? (
-                    <View className="rounded-full bg-[#F3F4F6] px-2 py-0.5">
-                      <Text className="text-[11px] font-semibold text-[#4B5563]">{item.color}</Text>
+                    <View className="rounded-full bg-bg-surface border border-semantic-border px-2 py-0.5">
+                      <Text className="text-[11px] font-semibold text-text-secondary">{item.color}</Text>
                     </View>
                   ) : null}
-                  <Text className="text-[12px] text-[#6B7280]">x{item.quantity}</Text>
+                  <Text className="text-[12px] text-text-secondary">x{item.quantity}</Text>
                 </View>
               </View>
-              <Text className="text-[14px] font-bold text-[#1F2937]">
+              <Text className="text-[14px] font-bold text-accent">
                 {formatCurrency(item.price * item.quantity)}
               </Text>
             </View>
           ))}
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 shadow-sm">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Địa chỉ giao hàng</Text>
-          <View className="mt-3 rounded-[18px] bg-[#F9FAFB] p-3">
-            <Text className="text-[14px] font-semibold text-[#1F2937]">
+        <View className="mt-3 rounded-[28px] bg-bg-surface border border-semantic-border p-4 mx-4">
+          <Text className="text-[16px] font-semibold text-text-primary">Địa chỉ giao hàng</Text>
+          <View className="mt-3 rounded-[18px] bg-bg-elevated border border-semantic-border p-3">
+            <Text className="text-[14px] font-semibold text-text-primary">
               {order.shippingAddress.name}
             </Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
+            <Text className="mt-1 text-[13px] text-text-secondary">
               {order.shippingAddress.address}
             </Text>
-            <Text className="text-[13px] text-[#6B7280]">{order.shippingAddress.city}</Text>
-            <Text className="mt-1 text-[12px] text-[#9CA3AF]">
+            <Text className="text-[13px] text-text-secondary">{order.shippingAddress.city}</Text>
+            <Text className="mt-1 text-[12px] text-text-muted">
               ☎ {order.shippingAddress.phone}
             </Text>
           </View>
         </View>
 
-        <View className="mt-3 rounded-[28px] bg-white p-4 mx-4 mb-4 shadow-sm">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Thanh toán</Text>
+        <View className="mt-3 rounded-[28px] bg-bg-surface border border-semantic-border p-4 mx-4 mb-4">
+          <Text className="text-[16px] font-semibold text-text-primary">Thanh toán</Text>
           <View className="mt-3 gap-2">
             <SummaryRow label="Tạm tính" value={formatCurrency(subtotal)} />
             <SummaryRow
@@ -272,14 +272,14 @@ export default function OrderDetailScreen() {
               <SummaryRow
                 label="Giảm giá"
                 value={`-${formatCurrency(order.discountTotal)}`}
-                valueClass="text-[#16A34A]"
+                valueClass="text-semantic-success"
               />
             ) : null}
-            <View className="my-2 h-[1px] bg-[#F3F4F6]" />
+            <View className="my-2 h-px bg-semantic-border" />
             <SummaryRow label="Tổng" value={formatCurrency(order.total)} bold />
-            <View className="mt-2 flex-row items-center justify-between rounded-[12px] bg-[#F9FAFB] px-3 py-2">
-              <Text className="text-[12px] text-[#6B7280]">Phương thức</Text>
-              <Text className="text-[13px] font-semibold text-[#1F2937]">
+            <View className="mt-2 flex-row items-center justify-between rounded-[12px] bg-bg-elevated border border-semantic-border px-3 py-2">
+              <Text className="text-[12px] text-text-secondary">Phương thức</Text>
+              <Text className="text-[13px] font-semibold text-text-primary">
                 {order.paymentMethod}
               </Text>
             </View>
@@ -303,7 +303,7 @@ export default function OrderDetailScreen() {
 function SummaryRow({
   label,
   value,
-  valueClass = 'text-[#1F2937]',
+  valueClass = 'text-text-primary',
   bold = false,
 }: {
   label: string;
@@ -313,7 +313,7 @@ function SummaryRow({
 }) {
   return (
     <View className="flex-row items-center justify-between">
-      <Text className={bold ? 'text-[16px] font-semibold text-[#1F2937]' : 'text-[14px] text-[#6B7280]'}>
+      <Text className={bold ? 'text-[16px] font-semibold text-text-primary' : 'text-[14px] text-text-secondary'}>
         {label}
       </Text>
       <Text
