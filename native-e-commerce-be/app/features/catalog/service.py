@@ -289,12 +289,17 @@ def search_products_by_image(
         id_candidates.add(sid)
         id_candidates.add(f"dim-{_slugify_local(sid)}")
 
+    cand_list = list(id_candidates)
+    if not cand_list:
+        return []
+
     prod_rows = (
         db.execute(
             select(Product).where(
                 Product.store_id == store_id,
                 Product.deleted_at.is_(None),
-                Product.id.in_(list(id_candidates)),
+                Product.is_active.is_(True),
+                Product.id.in_(cand_list),
             )
         )
         .scalars()
@@ -305,7 +310,7 @@ def search_products_by_image(
     by_image = {str(p.default_image or "").strip(): p for p in prod_rows if p.default_image}
     by_name = {str(p.name or "").strip().lower(): p for p in prod_rows if p.name}
 
-    out: list[dict] = []
+    resolved: list[tuple[float, Product, str, str]] = []
     seen_product_ids: set[str] = set()
     for score, sid, fallback_name, fallback_image in best:
         p = by_id.get(sid) or by_id.get(f"dim-{_slugify_local(sid)}")
@@ -313,33 +318,58 @@ def search_products_by_image(
             # Ưu tiên map theo URL ảnh (độ chính xác cao hơn name)
             p = by_image.get(fallback_image.strip())
         if p is None and fallback_name:
-            # Fallback theo name exact-lower
+            # Fallback theo name exact-lower (chỉ trong tập đã resolve được từ metadata id)
             p = by_name.get(fallback_name.strip().lower())
-        if p is None and fallback_name:
-            # Fallback cuối: ilike theo name từ metadata
-            p = (
-                db.execute(
-                    select(Product).where(
-                        Product.store_id == store_id,
-                        Product.deleted_at.is_(None),
-                        Product.name.ilike(f"%{fallback_name}%"),
-                    )
-                )
-                .scalars()
-                .first()
-            )
         if p is None:
-            # Không có product trong DB thì bỏ qua để đảm bảo click điều hướng được.
             continue
         if p.id in seen_product_ids:
             continue
         seen_product_ids.add(p.id)
+        resolved.append((score, p, fallback_name, fallback_image))
+
+    keys = [(p.store_id, p.id) for _, p, _, _ in resolved]
+    vmap = _load_variants_bulk(db, keys)
+    imap = _load_images_bulk(db, keys)
+
+    out: list[dict] = []
+    for score, p, fallback_name, fallback_image in resolved:
+        price = _master_price(p)
+        vars_ = vmap.get((p.store_id, p.id), [])
+        imgs = imap.get((p.store_id, p.id), [])
+        desc = p.short_description or (
+            p.description[:160] + "…" if len(p.description) > 160 else p.description
+        )
+        var_list = [_serialize_variant(v, price) for v in vars_] if vars_ else [
+            {
+                "id": f"{p.id}-default",
+                "sku": p.id,
+                "size": None,
+                "color": None,
+                "price": price,
+                "stock": p.total_stock,
+                "image": p.default_image,
+            }
+        ]
+        display_name = (p.name or "").strip() or fallback_name or ""
+        display_image = (p.default_image or "").strip() or fallback_image or ""
         out.append(
             {
-                "product_id": p.id,
-                "name": p.name or fallback_name,
-                "image": p.default_image or fallback_image,
-                "price": _master_price(p),
+                "id": p.id,
+                "name": display_name,
+                "image": display_image or None,
+                "description": desc,
+                "price": price,
+                "compareAtPrice": float(p.compare_at_price) if p.compare_at_price is not None else None,
+                "rating": float(p.rating_avg),
+                "reviews": p.review_count,
+                "categoryId": p.category_id,
+                "discount": p.discount_label,
+                "brand": p.brand,
+                "shoeType": str(p.shoe_type) if p.shoe_type is not None else None,
+                "genderTarget": str(p.gender_target) if p.gender_target is not None else None,
+                "totalStock": p.total_stock,
+                "images": [i.url for i in imgs],
+                "variants": var_list,
                 "score": round(float(score), 6),
             }
         )
