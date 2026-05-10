@@ -1,4 +1,3 @@
-import { Stack } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -136,16 +135,14 @@ export default function AdminCategoriesScreen() {
   };
 
   return (
-    <>
-      <Stack.Screen options={{ title: 'Admin · Danh mục' }} />
-      <ScrollView
-        className="flex-1 bg-[#F4F4F4]"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-        <View className="px-4 pb-10 pt-5">
-          <View className="rounded-[20px] bg-white p-4 shadow-sm">
-            <Text className="text-[15px] font-semibold text-[#1F2937]">
-              {editingId ? 'Cập nhật danh mục' : 'Tạo danh mục mới'}
-            </Text>
+    <ScrollView
+      className="flex-1 bg-bg-primary"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
+      <View className="px-4 pb-10 pt-5">
+        <View className="rounded-card bg-bg-surface p-4">
+          <Text className="text-[15px] font-semibold text-text-primary">
+            {editingId ? 'Cập nhật danh mục' : 'Tạo danh mục mới'}
+          </Text>
             <View className="mt-3 gap-2">
               {!editingId ? <AppInput value={id} onChangeText={setId} label="ID" placeholder="vd: running" /> : null}
               <AppInput value={label} onChangeText={setLabel} label="Tên danh mục" />
@@ -156,19 +153,19 @@ export default function AdminCategoriesScreen() {
                 placeholder="để trống sẽ tự sinh từ tên"
               />
               <AppInput value={image} onChangeText={setImage} label="Ảnh" placeholder="https://..." />
-              <Pressable onPress={onPickAndUploadImage} className="rounded-[12px] border border-[#FDBA74] py-2">
-                <Text className="text-center text-[13px] font-semibold text-[#EA580C]">Upload ảnh từ máy</Text>
+              <Pressable onPress={onPickAndUploadImage} className="rounded-button border border-accent py-2">
+                <Text className="text-center text-[13px] font-semibold text-accent">Upload ảnh từ máy</Text>
               </Pressable>
               <AppInput value={parentId} onChangeText={setParentId} label="Parent ID (tuỳ chọn)" />
               <View className="flex-row gap-2">
-                <Pressable onPress={onSave} className="flex-1 rounded-[14px] bg-[#F97316] py-3">
-                  <Text className="text-center text-[13px] font-semibold text-white">
+                <Pressable onPress={onSave} className="flex-1 rounded-button bg-accent py-3">
+                  <Text className="text-center text-[13px] font-semibold text-text-primary">
                     {editingId ? 'Lưu thay đổi' : 'Tạo danh mục'}
                   </Text>
                 </Pressable>
                 {editingId ? (
-                  <Pressable onPress={resetForm} className="rounded-[14px] border border-[#E5E7EB] px-4 py-3">
-                    <Text className="text-[13px] font-semibold text-[#374151]">Huỷ</Text>
+                  <Pressable onPress={resetForm} className="rounded-button border border-semantic-border px-4 py-3">
+                    <Text className="text-[13px] font-semibold text-text-secondary">Huỷ</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -184,18 +181,18 @@ export default function AdminCategoriesScreen() {
           ) : (
             <View className="mt-3 gap-3">
               {rows.map((r) => (
-                <View key={r.id} className="rounded-[20px] bg-white p-4 shadow-sm">
-                  <Text className="text-[15px] font-bold text-[#1F2937]">{r.label}</Text>
-                  <Text className="mt-1 text-[12px] text-[#6B7280]">
+                <View key={r.id} className="rounded-card bg-bg-surface p-4">
+                  <Text className="text-[15px] font-bold text-text-primary">{r.label}</Text>
+                  <Text className="mt-1 text-[12px] text-text-secondary">
                     id: {r.id} · slug: {r.slug}
                   </Text>
-                  <Text className="mt-1 text-[12px] text-[#6B7280]">{r.image || '(no image)'}</Text>
+                  <Text className="mt-1 text-[12px] text-text-secondary">{r.image || '(no image)'}</Text>
                   <View className="mt-3 flex-row gap-2">
-                    <Pressable onPress={() => onEdit(r)} className="rounded-full border border-[#E5E7EB] px-4 py-2">
-                      <Text className="text-[12px] font-semibold text-[#374151]">Sửa</Text>
+                    <Pressable onPress={() => onEdit(r)} className="rounded-chip border border-semantic-border px-4 py-2">
+                      <Text className="text-[12px] font-semibold text-text-secondary">Sửa</Text>
                     </Pressable>
-                    <Pressable onPress={() => void onDelete(r.id)} className="rounded-full border border-[#FECACA] px-4 py-2">
-                      <Text className="text-[12px] font-semibold text-[#DC2626]">Xoá</Text>
+                    <Pressable onPress={() => void onDelete(r.id)} className="rounded-chip border border-red-900/30 px-4 py-2">
+                      <Text className="text-[12px] font-semibold text-red-400">Xoá</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -204,6 +201,5 @@ export default function AdminCategoriesScreen() {
           )}
         </View>
       </ScrollView>
-    </>
   );
 }
