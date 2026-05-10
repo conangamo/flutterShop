@@ -40,7 +40,7 @@ export default function AddressesScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Sổ địa chỉ' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-bg-primary p-4">
         <Pressable
           className="mb-4 items-center rounded-2xl bg-accent py-3.5"

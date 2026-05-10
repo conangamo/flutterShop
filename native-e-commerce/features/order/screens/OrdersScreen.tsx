@@ -15,17 +15,17 @@ type OrderFilter = 'all' | OrderStatus;
 function statusBadge(status: OrderStatus) {
   switch (status) {
     case 'pending':
-      return { label: 'Chờ xử lý', tone: 'bg-accent/10 border-accent/25 text-accent' };
+      return { label: 'Chờ xử lý', bg: '#FFF4E6', border: '#FFB84D', text: '#CC7A00' };
     case 'processing':
-      return { label: 'Đang xử lý', tone: 'bg-accent/10 border-accent/25 text-accent' };
+      return { label: 'Đang xử lý', bg: '#E6E6FF', border: '#9999FF', text: '#4D4DCC' };
     case 'shipped':
-      return { label: 'Đang giao', tone: 'bg-semantic-warning/10 border-semantic-warning/25 text-semantic-warning' };
+      return { label: 'Đang giao', bg: '#FFF9E6', border: '#FFD966', text: '#CC9900' };
     case 'delivered':
-      return { label: 'Đã giao', tone: 'bg-semantic-success/10 border-semantic-success/25 text-semantic-success' };
+      return { label: 'Đã giao', bg: '#E6F7ED', border: '#66CC8A', text: '#00994D' };
     case 'cancelled':
-      return { label: 'Đã hủy', tone: 'bg-accent-coral/10 border-accent-coral/25 text-accent-coral' };
+      return { label: 'Đã hủy', bg: '#F5F5F5', border: '#CCCCCC', text: '#666666' };
     default:
-      return { label: status, tone: 'bg-bg-elevated border-semantic-border text-text-muted' };
+      return { label: status, bg: '#F5F5F5', border: '#CCCCCC', text: '#999999' };
   }
 }
 
@@ -84,8 +84,7 @@ export default function OrdersScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Đơn hàng',
-          headerShadowVisible: false,
+          headerShown: false,
         }}
       />
 
@@ -187,7 +186,6 @@ export default function OrdersScreen() {
 
 function OrderCard({ order, index, onPress }: { order: OrderSummary; index: number; onPress: () => void }) {
   const badge = statusBadge(order.status);
-  const [bgClass, borderClass, textClass] = badge.tone.split(' ');
 
   return (
     <Animated.View
@@ -212,8 +210,17 @@ function OrderCard({ order, index, onPress }: { order: OrderSummary; index: numb
               #{order.code}
             </Text>
           </View>
-          <View className={`px-3 py-1 rounded-full border ${bgClass} ${borderClass}`}>
-            <Text className={`text-xs font-bold ${textClass}`}>
+          <View 
+            style={{
+              backgroundColor: badge.bg,
+              borderColor: badge.border,
+              borderWidth: 1,
+              paddingVertical: 4,
+              paddingHorizontal: 10,
+              borderRadius: 16,
+            }}
+          >
+            <Text style={{ fontSize: 12, fontWeight: 'bold', color: badge.text }}>
               {badge.label}
             </Text>
           </View>

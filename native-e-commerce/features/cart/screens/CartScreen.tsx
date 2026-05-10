@@ -3,9 +3,9 @@ import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useToast } from '~/components/ToastProvider';
-import { AppInput } from '~/components/ui/AppInput';
 import { useCart } from '~/features/cart/hooks/useCart';
 import { getAddresses } from '~/features/account/services/addressStorage';
 import { getAccessToken } from '~/lib/api/token';
@@ -18,14 +18,14 @@ export default function CartScreen() {
   const L = strings(locale);
   const { items, updateQuantity, removeFromCart } = useCart();
   const { addToast } = useToast();
+  const insets = useSafeAreaInsets();
   const [addressPreview, setAddressPreview] = useState('');
   const [pendingDelete, setPendingDelete] = useState<{
     productId: string;
     variantId: string | null;
     productName: string;
   } | null>(null);
-  const [promoInput, setPromoInput] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState<string | null>(null);
+  const [selectedItemIds, setSelectedItemIds] = useState<string[]>([]);
 
   const handleRemoveItem = (productId: string, variantId: string | null, productName: string) => {
     setPendingDelete({ productId, variantId, productName });
@@ -35,8 +35,42 @@ export default function CartScreen() {
     if (!pendingDelete) return;
     removeFromCart(pendingDelete.productId, pendingDelete.variantId);
     addToast('success', L.common.success, `${pendingDelete.productName}: ${L.cart.removeSuccess}`);
+    // Remove from selected items if it was selected
+    const itemKey = `${pendingDelete.productId}::${pendingDelete.variantId ?? ''}`;
+    setSelectedItemIds(prev => prev.filter(id => id !== itemKey));
     setPendingDelete(null);
   };
+
+  // Helper to generate unique key for cart item
+  const getItemKey = (productId: string, variantId: string | null) => {
+    return `${productId}::${variantId ?? ''}`;
+  };
+
+  // Toggle individual item selection
+  const toggleItemSelection = (productId: string, variantId: string | null) => {
+    const itemKey = getItemKey(productId, variantId);
+    setSelectedItemIds(prev => {
+      if (prev.includes(itemKey)) {
+        return prev.filter(id => id !== itemKey);
+      } else {
+        return [...prev, itemKey];
+      }
+    });
+  };
+
+  // Toggle select all
+  const toggleSelectAll = () => {
+    if (selectedItemIds.length === items.length) {
+      // Deselect all
+      setSelectedItemIds([]);
+    } else {
+      // Select all
+      const allKeys = items.map(it => getItemKey(it.product.id, it.variantId ?? null));
+      setSelectedItemIds(allKeys);
+    }
+  };
+
+  const isAllSelected = items.length > 0 && selectedItemIds.length === items.length;
 
   const handleCheckoutPress = useCallback(async () => {
     const token = await getAccessToken();
@@ -48,12 +82,22 @@ export default function CartScreen() {
       return;
     }
 
-    if (appliedPromo) {
-      router.push({ pathname: '/checkout', params: { promoCode: appliedPromo } });
+    if (selectedItemIds.length === 0) {
+      Alert.alert('Chưa chọn sản phẩm', 'Vui lòng chọn ít nhất một sản phẩm để thanh toán');
       return;
     }
-    router.push('/checkout');
-  }, [L, appliedPromo, router]);
+
+    // Filter only selected items
+    const selectedItems = items.filter(it => {
+      const itemKey = getItemKey(it.product.id, it.variantId ?? null);
+      return selectedItemIds.includes(itemKey);
+    });
+
+    // Store selected items in a way that checkout can access them
+    // We'll pass the selected item keys as params
+    const selectedKeys = selectedItems.map(it => getItemKey(it.product.id, it.variantId ?? null)).join(',');
+    router.push({ pathname: '/checkout', params: { selectedItems: selectedKeys } });
+  }, [L, selectedItemIds, items, router]);
 
   const refreshPreview = useCallback(async () => {
     const S = strings(locale);
@@ -72,8 +116,13 @@ export default function CartScreen() {
     }, [refreshPreview])
   );
 
-  const subtotal = items.reduce((s, i) => s + Number(i.product.price) * i.quantity, 0);
-  const shipping = items.length === 0 ? 0 : subtotal >= 1_500_000 ? 0 : 30_000;
+  const subtotal = items.reduce((s, i) => {
+    const itemKey = getItemKey(i.product.id, i.variantId ?? null);
+    // Only count selected items
+    if (!selectedItemIds.includes(itemKey)) return s;
+    return s + Number(i.product.price) * i.quantity;
+  }, 0);
+  const shipping = selectedItemIds.length === 0 ? 0 : subtotal >= 1_500_000 ? 0 : 30_000;
   const discount = 0;
   const total = subtotal + shipping - discount;
 
@@ -81,14 +130,13 @@ export default function CartScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Giỏ hàng',
           headerShown: false,
         }}
       />
 
       <View style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
         <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 }}>
+          <View style={{ paddingHorizontal: 16, paddingTop: Math.max(16, insets.top), paddingBottom: 24 }}>
             {/* === HEADER === */}
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
               <View>
@@ -155,11 +203,56 @@ export default function CartScreen() {
               </Animated.View>
             ) : (
               <>
+                {/* === SELECT ALL CHECKBOX === */}
+                <Animated.View entering={FadeInDown.duration(400).delay(150)}>
+                  <Pressable
+                    onPress={toggleSelectAll}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      backgroundColor: '#13131A',
+                      borderRadius: 16,
+                      padding: 16,
+                      marginBottom: 16,
+                      borderWidth: 1,
+                      borderColor: '#2A2A3A',
+                      gap: 12,
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 8,
+                        borderWidth: 2,
+                        borderColor: isAllSelected ? '#6C63FF' : '#2A2A3A',
+                        backgroundColor: isAllSelected ? '#6C63FF' : 'transparent',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {isAllSelected && (
+                        <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                      )}
+                    </View>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: '#F0F0F5', flex: 1 }}>
+                      Chọn tất cả ({items.length} sản phẩm)
+                    </Text>
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#6C63FF' }}>
+                      {selectedItemIds.length}/{items.length}
+                    </Text>
+                  </Pressable>
+                </Animated.View>
+
                 {/* === CART ITEMS LIST === */}
                 <View style={{ gap: 16, marginBottom: 20 }}>
-                  {items.map((it, index) => (
+                  {items.map((it, index) => {
+                    const itemKey = getItemKey(it.product.id, it.variantId ?? null);
+                    const isSelected = selectedItemIds.includes(itemKey);
+                    
+                    return (
                     <Animated.View
-                      key={`${it.product.id}::${it.variantId ?? ''}`}
+                      key={itemKey}
                       entering={FadeInDown.duration(400).delay(200 + index * 50)}
                       style={{
                         flexDirection: 'row',
@@ -167,7 +260,7 @@ export default function CartScreen() {
                         borderRadius: 20,
                         padding: 14,
                         borderWidth: 1,
-                        borderColor: '#2A2A3A',
+                        borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
                         alignItems: 'center',
                         gap: 14,
                         shadowColor: '#000',
@@ -177,7 +270,26 @@ export default function CartScreen() {
                         elevation: 4,
                       }}
                     >
-                      {/* Product image thumbnail — LEFT */}
+                      {/* Checkbox — LEFT */}
+                      <Pressable
+                        onPress={() => toggleItemSelection(it.product.id, it.variantId ?? null)}
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: 8,
+                          borderWidth: 2,
+                          borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                          backgroundColor: isSelected ? '#6C63FF' : 'transparent',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {isSelected && (
+                          <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                        )}
+                      </Pressable>
+
+                      {/* Product image thumbnail */}
                       <View style={{ width: 90, height: 90, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1C1C28' }}>
                         <Image
                           source={{ uri: it.product.image }}
@@ -305,60 +417,8 @@ export default function CartScreen() {
                         <Ionicons name="trash-outline" size={20} color="#FF6584" />
                       </Pressable>
                     </Animated.View>
-                  ))}
+                  )})}
                 </View>
-
-                {/* === PROMO CODE === */}
-                <Animated.View entering={FadeInDown.duration(500).delay(400)}>
-                  <View style={{ backgroundColor: '#13131A', borderRadius: 24, padding: 20, marginBottom: 20, borderWidth: 1, borderColor: '#2A2A3A', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 12, elevation: 4 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                      <Ionicons name="pricetag" size={20} color="#6C63FF" />
-                      <Text style={{ fontSize: 17, fontWeight: '800', color: '#F0F0F5', letterSpacing: 0.3 }}>Mã giảm giá</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 10 }}>
-                      <View style={{ flex: 1 }}>
-                        <AppInput
-                          value={promoInput}
-                          onChangeText={setPromoInput}
-                          placeholder="Nhập mã giảm giá"
-                          autoCapitalize="characters"
-                        />
-                      </View>
-                      <Pressable
-                        onPress={() => {
-                          const normalized = promoInput.trim().toUpperCase();
-                          if (!normalized) return;
-                          setAppliedPromo(normalized);
-                          setPromoInput(normalized);
-                        }}
-                        style={{
-                          backgroundColor: '#6C63FF',
-                          borderRadius: 14,
-                          paddingHorizontal: 20,
-                          paddingVertical: 14,
-                          shadowColor: '#6C63FF',
-                          shadowOffset: { width: 0, height: 4 },
-                          shadowOpacity: 0.3,
-                          shadowRadius: 8,
-                          elevation: 4,
-                        }}
-                      >
-                        <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff', letterSpacing: 0.5 }}>Áp dụng</Text>
-                      </Pressable>
-                    </View>
-                    {appliedPromo ? (
-                      <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 14, backgroundColor: 'rgba(62, 207, 142, 0.15)', paddingHorizontal: 16, paddingVertical: 12, borderWidth: 1, borderColor: 'rgba(62, 207, 142, 0.3)' }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                          <Ionicons name="checkmark-circle" size={18} color="#3ECF8E" />
-                          <Text style={{ fontSize: 14, fontWeight: '700', color: '#3ECF8E', letterSpacing: 0.3 }}>Đang áp dụng: {appliedPromo}</Text>
-                        </View>
-                        <Pressable onPress={() => setAppliedPromo(null)}>
-                          <Text style={{ fontSize: 14, fontWeight: '800', color: '#3ECF8E' }}>Bỏ</Text>
-                        </Pressable>
-                      </View>
-                    ) : null}
-                  </View>
-                </Animated.View>
 
                 {/* === FLOATING ORDER SUMMARY PANEL === */}
                 <Animated.View
@@ -381,8 +441,15 @@ export default function CartScreen() {
                   {/* Premium background with gradient feel */}
                   <View style={{ backgroundColor: '#13131A', padding: 24 }}>
                     {/* Summary title */}
-                    <Text style={{ color: '#F0F0F5', fontSize: 19, fontWeight: '800', marginBottom: 20, letterSpacing: 0.3 }}>
+                    <Text style={{ color: '#F0F0F5', fontSize: 19, fontWeight: '800', marginBottom: 8, letterSpacing: 0.3 }}>
                       Tóm tắt đơn hàng
+                    </Text>
+                    
+                    {/* Selected items count */}
+                    <Text style={{ color: '#8888A0', fontSize: 14, fontWeight: '500', marginBottom: 20 }}>
+                      {selectedItemIds.length > 0 
+                        ? `Đã chọn ${selectedItemIds.length} sản phẩm` 
+                        : 'Chưa chọn sản phẩm nào'}
                     </Text>
 
                     {/* Subtotal row */}

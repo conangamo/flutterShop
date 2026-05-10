@@ -65,7 +65,7 @@ export default function AdminUsersScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Admin · Users' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
         className="flex-1 bg-[#F4F4F4]"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>

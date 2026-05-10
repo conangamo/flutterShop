@@ -11,18 +11,18 @@ export default function CheckoutSuccess() {
   const paymentMethodType = params.paymentMethodType ?? '';
   const orderTotal = params.orderTotal ?? '0';
   const checkoutCopy = {
-    successTitle: 'Order Placed!',
-    successMessage: 'Your order was placed successfully.',
-    orderId: 'Order ID',
-    nextSteps: 'What happens next?',
-    step1Title: 'Order confirmed',
-    step1Desc: 'We are preparing your order.',
-    step2Title: 'Shipped',
-    step2Desc: 'We will notify you when it ships.',
-    step3Title: 'Delivered',
-    step3Desc: 'Track your order at any time.',
-    viewOrder: 'View Order Details',
-    continueShopping: 'Continue Shopping',
+    successTitle: 'Đặt hàng thành công!',
+    successMessage: 'Đơn hàng của bạn đã được ghi nhận.',
+    orderId: 'MÃ ĐƠN HÀNG',
+    nextSteps: 'TIẾN TRÌNH ĐƠN HÀNG',
+    step1Title: 'Đã xác nhận',
+    step1Desc: 'Chúng tôi đang chuẩn bị hàng.',
+    step2Title: 'Đang giao',
+    step2Desc: 'Sẽ thông báo khi lấy hàng.',
+    step3Title: 'Đã giao',
+    step3Desc: 'Cảm ơn bạn đã mua sắm.',
+    viewOrder: 'Xem chi tiết đơn hàng',
+    continueShopping: 'Tiếp tục mua sắm',
   };
 
   return (
@@ -84,12 +84,20 @@ export default function CheckoutSuccess() {
                 {/* QR Code for E_WALLET Payment */}
                 {paymentMethodType === 'E_WALLET' ? (
                   <View className="mb-4 items-center">
-                    <Image
-                      source={{ uri: `https://img.vietqr.io/image/BIDV-5321170903-compact2.png?amount=${orderTotal}&addInfo=${orderId}&accountName=NGUYEN PHUONG THAO` }}
-                      style={{ width: 250, height: 250, marginVertical: 12 }}
-                      resizeMode="contain"
-                    />
-                    <Text className="text-center text-[14px] font-bold text-text-primary mt-2">
+                    <View className="bg-white rounded-[12px] p-6" style={{
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.08,
+                      shadowRadius: 8,
+                      elevation: 3,
+                    }}>
+                      <Image
+                        source={{ uri: `https://img.vietqr.io/image/BIDV-5321170903-compact2.png?amount=${orderTotal}&addInfo=${orderId}&accountName=NGUYEN PHUONG THAO` }}
+                        style={{ width: 250, height: 250 }}
+                        resizeMode="contain"
+                      />
+                    </View>
+                    <Text className="text-center text-[14px] font-bold text-text-primary mt-4">
                       Vui lòng quét mã QR trên để hoàn tất thanh toán
                     </Text>
                   </View>
@@ -99,7 +107,7 @@ export default function CheckoutSuccess() {
                   <Text className="text-[12px] uppercase tracking-[1.5px] text-text-secondary">
                     {checkoutCopy.nextSteps}
                   </Text>
-                  <View className="mt-3 gap-3">
+                  <View className="mt-3 gap-5">
                     <View className="flex-row items-start gap-3">
                       <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-accent/15 border border-accent/30">
                         <Text className="text-[12px] font-bold text-accent">1</Text>

@@ -4,6 +4,7 @@ export default function AddressIdLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerStyle: {
           backgroundColor: '#0A0A0F',
         },
@@ -19,7 +20,7 @@ export default function AddressIdLayout() {
         },
       }}
     >
-      <Stack.Screen name="edit" options={{ title: 'Chỉnh sửa địa chỉ' }} />
+      <Stack.Screen name="edit" options={{ headerShown: false }} />
     </Stack>
   );
 }

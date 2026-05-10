@@ -469,7 +469,7 @@ export default function HomeScreen() {
                 onPress={() => setShowFilter(true)}
               />
               <PillButton
-                label={activeFilterCount > 0 ? `Filter (${activeFilterCount})` : 'Filter'}
+                label={activeFilterCount > 0 ? `Lọc (${activeFilterCount})` : 'Lọc'}
                 icon={<Feather name="filter" size={15} color="#8888A0" />}
                 onPress={() => setShowFilter(true)}
               />

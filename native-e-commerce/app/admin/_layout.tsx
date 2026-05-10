@@ -4,6 +4,7 @@ export default function AdminLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerStyle: {
           backgroundColor: '#0A0A0F', // bg-primary
         },
@@ -19,13 +20,13 @@ export default function AdminLayout() {
         },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Admin' }} />
-      <Stack.Screen name="dashboard" options={{ title: 'Dashboard' }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="dashboard" options={{ headerShown: false }} />
       <Stack.Screen name="orders" options={{ headerShown: false }} />
-      <Stack.Screen name="inventory" options={{ title: 'Tồn kho' }} />
-      <Stack.Screen name="promos" options={{ title: 'Khuyến mãi' }} />
-      <Stack.Screen name="users" options={{ title: 'Người dùng' }} />
-      <Stack.Screen name="categories" options={{ title: 'Danh mục' }} />
+      <Stack.Screen name="inventory" options={{ headerShown: false }} />
+      <Stack.Screen name="promos" options={{ headerShown: false }} />
+      <Stack.Screen name="users" options={{ headerShown: false }} />
+      <Stack.Screen name="categories" options={{ headerShown: false }} />
     </Stack>
   );
 }

@@ -47,7 +47,7 @@ export default function AddressScreen() {
       <Stack.Screen
         options={{
           title: 'Địa chỉ giao hàng',
-          headerShadowVisible: false,
+          headerShown: false,
         }}
       />
 

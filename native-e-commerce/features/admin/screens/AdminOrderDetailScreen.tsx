@@ -95,7 +95,7 @@ export default function AdminOrderDetailScreen() {
   if (loading || !order) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Admin · Chi tiết' }} />
+        <Stack.Screen options={{ headerShown: false }} />
         <View className="flex-1 bg-[#F4F4F4] px-4">
           <LoadingBlock label="Đang tải chi tiết đơn hàng..." />
         </View>
@@ -107,7 +107,7 @@ export default function AdminOrderDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: `Admin · #${order.code}` }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView className="flex-1 bg-[#F4F4F4]">
         <AppCard className="m-4">
           <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Mã đơn</Text>

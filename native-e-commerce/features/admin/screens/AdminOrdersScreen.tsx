@@ -79,7 +79,7 @@ export default function AdminOrdersScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Admin · Đơn hàng' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-[#F4F4F4]">
         <View className="px-4 pb-2 pt-4">
           <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Operations</Text>

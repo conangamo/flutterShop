@@ -11,15 +11,15 @@ export default function EditProfileScreen() {
   const [avatar, setAvatar] = useState('');
 
   function save() {
-    addToast('success', 'Saved', 'Profile updated');
+    addToast('success', 'Đã lưu', 'Hồ sơ đã được cập nhật');
     setTimeout(() => router.back(), 1200);
   }
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Edit Profile' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-bg-primary p-4">
-        <Text className="mb-2 font-semibold text-text-primary">Name</Text>
+        <Text className="mb-2 font-semibold text-text-primary">Tên</Text>
         <TextInput
           value={name}
           onChangeText={setName}
@@ -27,7 +27,7 @@ export default function EditProfileScreen() {
           placeholderTextColor="#8888A0"
         />
 
-        <Text className="mb-2 font-semibold text-text-primary">Bio</Text>
+        <Text className="mb-2 font-semibold text-text-primary">Giới thiệu</Text>
         <TextInput
           value={bio}
           onChangeText={setBio}
@@ -35,7 +35,7 @@ export default function EditProfileScreen() {
           placeholderTextColor="#8888A0"
         />
 
-        <Text className="mb-2 font-semibold text-text-primary">Avatar URL</Text>
+        <Text className="mb-2 font-semibold text-text-primary">URL ảnh đại diện</Text>
         <TextInput
           value={avatar}
           onChangeText={setAvatar}
@@ -44,7 +44,7 @@ export default function EditProfileScreen() {
         />
 
         <Pressable className="mt-4 items-center rounded-button bg-accent py-3" onPress={save}>
-          <Text className="font-semibold text-white">Save</Text>
+          <Text className="font-semibold text-white">Lưu</Text>
         </Pressable>
       </View>
     </>

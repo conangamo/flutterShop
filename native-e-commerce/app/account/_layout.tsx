@@ -4,6 +4,7 @@ export default function AccountLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerStyle: {
           backgroundColor: '#0A0A0F',
         },
@@ -19,7 +20,7 @@ export default function AccountLayout() {
         },
       }}
     >
-      <Stack.Screen name="edit" options={{ title: 'Chỉnh sửa hồ sơ' }} />
+      <Stack.Screen name="edit" options={{ headerShown: false }} />
     </Stack>
   );
 }

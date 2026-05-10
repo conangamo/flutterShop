@@ -1,6 +1,6 @@
 import { API_BASE_URL, STORE_ID } from '~/lib/config/env';
 import { ApiError } from '~/lib/api/errors';
-import { getAccessToken } from '~/lib/api/token';
+import { getAccessToken, setAccessToken } from '~/lib/api/token';
 
 type Json = Record<string, unknown> | unknown[] | string | number | boolean | null;
 
@@ -66,6 +66,15 @@ export async function apiFetch<T = Json>(
     } else if (typeof body === 'string' && body.length) {
       message = body.slice(0, 160);
     }
+    
+    // Handle 401 Unauthorized - clear invalid token
+    if (res.status === 401 && !skipAuth) {
+      // Clear the invalid token to prevent repeated failed requests
+      await setAccessToken(null);
+      // Note: We don't redirect here to avoid circular dependencies
+      // The UI should handle this by checking auth state
+    }
+    
     throw new ApiError(code, message, res.status, details);
   }
 

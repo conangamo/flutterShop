@@ -56,7 +56,7 @@ export default function AdminHomeScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Admin' }} />
+        <Stack.Screen options={{ headerShown: false }} />
         <View className="flex-1 items-center justify-center bg-white">
           <ActivityIndicator size="large" color="#F97316" />
         </View>
@@ -67,7 +67,7 @@ export default function AdminHomeScreen() {
   if (forbidden) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Admin' }} />
+        <Stack.Screen options={{ headerShown: false }} />
         <View className="flex-1 items-center justify-center bg-white px-6">
           <Ionicons name="lock-closed-outline" size={36} color="#9CA3AF" />
           <Text className="mt-3 text-[16px] font-semibold text-[#1F2937]">
@@ -83,7 +83,7 @@ export default function AdminHomeScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Admin' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView className="flex-1 bg-[#F4F4F4]">
         <View className="m-4 rounded-[24px] bg-white p-4 shadow-sm">
           <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Đăng nhập</Text>

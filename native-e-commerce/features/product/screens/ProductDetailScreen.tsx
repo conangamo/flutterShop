@@ -65,11 +65,14 @@ export default function ProductDetailScreen() {
   const [loading, setLoading] = useState(Boolean(productId));
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState<string>('40');
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
+  
+  // Standard shoe sizes for frontend selection (always available)
+  const STANDARD_SIZES = ['38', '39', '40', '41', '42', '43'];
 
   const load = useCallback(async () => {
     if (!productId) {
@@ -159,15 +162,15 @@ export default function ProductDetailScreen() {
   const isOutOfStock = totalStock <= 0;
 
   const handleAddToCart = () => {
-    if (!selectedVariant || isOutOfStock) return false;
+    if (isOutOfStock) return false;
     const snapshot: Product = {
       ...product,
-      price: selectedVariant.price,
-      image: selectedVariant.image ?? product.image,
+      price: selectedVariant?.price ?? product.price,
+      image: selectedVariant?.image ?? product.image,
     };
-    addToCart(snapshot, quantity, selectedVariant.id, {
-      size: selectedVariant.size ?? null,
-      color: selectedVariant.color ?? null,
+    addToCart(snapshot, quantity, selectedVariant?.id ?? null, {
+      size: selectedSize, // Always include the selected size from frontend
+      color: selectedVariant?.color ?? selectedColor,
     });
     addToast('success', L.common.success, L.cart.addSuccess);
     return true;
@@ -394,28 +397,32 @@ export default function ProductDetailScreen() {
               </View>
             ) : null}
 
-            {/* === SIZE SELECTION === */}
-            {sizes.length > 0 ? (
-              <View style={{ marginBottom: 40 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <Text style={{ color: '#8888A0', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5 }}>Kích cỡ</Text>
-                  <Pressable onPress={() => setShowSizeGuide((v) => !v)}>
-                    <Text style={{ color: '#6C63FF', fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' }}>
-                      Bảng size
-                    </Text>
-                  </Pressable>
-                </View>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                  {sizes.map((sz) => {
-                    const variantForSize = product.variants.find(
-                      (v) => v.size === sz && (selectedColor == null || v.color === selectedColor)
-                    );
-                    const isAvailable = (variantForSize?.stock ?? 0) > 0;
-                    const isSelected = selectedSize === sz;
-                    return (
-                      <Pressable
-                        key={sz}
-                        onPress={() => {
+            {/* === SIZE SELECTION (ALWAYS VISIBLE) === */}
+            <View style={{ marginBottom: 40 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                <Text style={{ color: '#8888A0', fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5 }}>Kích cỡ</Text>
+                <Pressable onPress={() => setShowSizeGuide((v) => !v)}>
+                  <Text style={{ color: '#6C63FF', fontSize: 13, fontWeight: '700', textDecorationLine: 'underline' }}>
+                    Bảng size
+                  </Text>
+                </Pressable>
+              </View>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                {STANDARD_SIZES.map((sz) => {
+                  // Check if this size exists in variants and has stock
+                  const variantForSize = sizes.length > 0 
+                    ? product.variants.find(
+                        (v) => v.size === sz && (selectedColor == null || v.color === selectedColor)
+                      )
+                    : null;
+                  const isAvailable = sizes.length > 0 ? (variantForSize?.stock ?? 0) > 0 : true;
+                  const isSelected = selectedSize === sz;
+                  return (
+                    <Pressable
+                      key={sz}
+                      onPress={() => {
+                        if (sizes.length > 0) {
+                          // If variants exist, try to find matching variant
                           const next = product.variants.find(
                             (v) =>
                               v.size === sz &&
@@ -424,77 +431,80 @@ export default function ProductDetailScreen() {
                           ) ?? product.variants.find((v) => v.size === sz && v.stock > 0);
                           setSelectedSize(sz);
                           if (next?.color) setSelectedColor(next.color);
-                        }}
-                        disabled={!isAvailable}
-                        style={{
-                          width: 40,
-                          height: 40,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 20,
-                          borderWidth: 2,
-                          borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
-                          backgroundColor: isSelected ? '#6C63FF' : 'transparent',
-                          opacity: isAvailable ? 1 : 0.25,
-                        }}
-                      >
-                        <Text style={{ fontSize: 14, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#F0F0F5' }}>
-                          {sz}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                
-                {/* Size Chart Modal */}
-                <Modal
-                  visible={showSizeGuide}
-                  transparent
-                  animationType="fade"
-                  onRequestClose={() => setShowSizeGuide(false)}
+                        } else {
+                          // Frontend-only selection
+                          setSelectedSize(sz);
+                        }
+                      }}
+                      disabled={!isAvailable}
+                      style={{
+                        width: 40,
+                        height: 40,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 20,
+                        borderWidth: 2,
+                        borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
+                        backgroundColor: isSelected ? '#6C63FF' : 'transparent',
+                        opacity: isAvailable ? 1 : 0.25,
+                      }}
+                    >
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: isSelected ? '#FFFFFF' : '#F0F0F5' }}>
+                        {sz}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+              
+              {/* Size Chart Modal */}
+              <Modal
+                visible={showSizeGuide}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowSizeGuide(false)}
+              >
+                <Pressable 
+                  style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.9)', justifyContent: 'center', alignItems: 'center' }}
+                  onPress={() => setShowSizeGuide(false)}
                 >
                   <Pressable 
-                    style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.9)', justifyContent: 'center', alignItems: 'center' }}
-                    onPress={() => setShowSizeGuide(false)}
+                    style={{ width: '90%', maxWidth: 420, backgroundColor: '#13131A', borderRadius: 28, padding: 28, borderWidth: 1, borderColor: '#2A2A3A' }}
+                    onPress={(e) => e.stopPropagation()}
                   >
-                    <Pressable 
-                      style={{ width: '90%', maxWidth: 420, backgroundColor: '#13131A', borderRadius: 28, padding: 28, borderWidth: 1, borderColor: '#2A2A3A' }}
-                      onPress={(e) => e.stopPropagation()}
-                    >
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-                        <Text style={{ fontSize: 22, fontWeight: '900', color: '#F0F0F5', letterSpacing: -0.5 }}>Bảng Size Giày</Text>
-                        <Pressable onPress={() => setShowSizeGuide(false)}>
-                          <Ionicons name="close-circle" size={32} color="#8888A0" />
-                        </Pressable>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                      <Text style={{ fontSize: 22, fontWeight: '900', color: '#F0F0F5', letterSpacing: -0.5 }}>Bảng Size Giày</Text>
+                      <Pressable onPress={() => setShowSizeGuide(false)}>
+                        <Ionicons name="close-circle" size={32} color="#8888A0" />
+                      </Pressable>
+                    </View>
+                    
+                    <View style={{ backgroundColor: '#1C1C28', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#2A2A3A' }}>
+                      <View style={{ flexDirection: 'row', paddingBottom: 16, borderBottomWidth: 2, borderBottomColor: '#6C63FF' }}>
+                        <Text style={{ flex: 1, fontSize: 14, fontWeight: '800', color: '#6C63FF', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 1 }}>EU</Text>
+                        <Text style={{ flex: 1, fontSize: 14, fontWeight: '800', color: '#6C63FF', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 1 }}>US</Text>
+                        <Text style={{ flex: 1, fontSize: 14, fontWeight: '800', color: '#6C63FF', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 1 }}>CM</Text>
                       </View>
-                      
-                      <View style={{ backgroundColor: '#1C1C28', borderRadius: 20, padding: 20, borderWidth: 1, borderColor: '#2A2A3A' }}>
-                        <View style={{ flexDirection: 'row', paddingBottom: 16, borderBottomWidth: 2, borderBottomColor: '#6C63FF' }}>
-                          <Text style={{ flex: 1, fontSize: 14, fontWeight: '800', color: '#6C63FF', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 1 }}>EU</Text>
-                          <Text style={{ flex: 1, fontSize: 14, fontWeight: '800', color: '#6C63FF', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 1 }}>US</Text>
-                          <Text style={{ flex: 1, fontSize: 14, fontWeight: '800', color: '#6C63FF', textTransform: 'uppercase', textAlign: 'center', letterSpacing: 1 }}>CM</Text>
+                      {SHOE_SIZE_GUIDE.map((row, idx) => (
+                        <View 
+                          key={row.eu} 
+                          style={{ 
+                            flexDirection: 'row', 
+                            paddingVertical: 12,
+                            backgroundColor: idx % 2 === 0 ? 'transparent' : 'rgba(108, 99, 255, 0.08)',
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Text style={{ flex: 1, fontSize: 15, color: '#F0F0F5', textAlign: 'center', fontWeight: '700' }}>{row.eu}</Text>
+                          <Text style={{ flex: 1, fontSize: 15, color: '#C0C0D0', textAlign: 'center', fontWeight: '600' }}>{row.us}</Text>
+                          <Text style={{ flex: 1, fontSize: 15, color: '#C0C0D0', textAlign: 'center', fontWeight: '600' }}>{row.cm}</Text>
                         </View>
-                        {SHOE_SIZE_GUIDE.map((row, idx) => (
-                          <View 
-                            key={row.eu} 
-                            style={{ 
-                              flexDirection: 'row', 
-                              paddingVertical: 12,
-                              backgroundColor: idx % 2 === 0 ? 'transparent' : 'rgba(108, 99, 255, 0.08)',
-                              borderRadius: 8,
-                            }}
-                          >
-                            <Text style={{ flex: 1, fontSize: 15, color: '#F0F0F5', textAlign: 'center', fontWeight: '700' }}>{row.eu}</Text>
-                            <Text style={{ flex: 1, fontSize: 15, color: '#C0C0D0', textAlign: 'center', fontWeight: '600' }}>{row.us}</Text>
-                            <Text style={{ flex: 1, fontSize: 15, color: '#C0C0D0', textAlign: 'center', fontWeight: '600' }}>{row.cm}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    </Pressable>
+                      ))}
+                    </View>
                   </Pressable>
-                </Modal>
-              </View>
-            ) : null}
+                </Pressable>
+              </Modal>
+            </View>
 
             {/* === QUANTITY SELECTOR === */}
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 40 }}>
@@ -627,7 +637,7 @@ export default function ProductDetailScreen() {
           {/* Left: Primary Action - MUA NGAY Button */}
           <Pressable
             onPress={handleBuyNow}
-            disabled={isOutOfStock || !selectedVariant}
+            disabled={isOutOfStock}
             style={{
               flex: 1,
               backgroundColor: isOutOfStock ? '#444455' : '#6C63FF',
@@ -658,7 +668,7 @@ export default function ProductDetailScreen() {
           {/* Right: Secondary Action - Cart Icon Button */}
           <Pressable
             onPress={handleAddToCart}
-            disabled={isOutOfStock || !selectedVariant}
+            disabled={isOutOfStock}
             style={{
               width: 64,
               height: 64,

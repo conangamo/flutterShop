@@ -4,6 +4,7 @@ export default function AdminOrdersLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerStyle: {
           backgroundColor: '#0A0A0F', // bg-primary
         },
@@ -19,8 +20,8 @@ export default function AdminOrdersLayout() {
         },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Quản lý đơn hàng' }} />
-      <Stack.Screen name="[id]" options={{ title: 'Chi tiết đơn hàng' }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

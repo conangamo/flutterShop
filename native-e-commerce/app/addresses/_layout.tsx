@@ -4,6 +4,7 @@ export default function AddressesLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerStyle: {
           backgroundColor: '#0A0A0F',
         },
@@ -19,8 +20,8 @@ export default function AddressesLayout() {
         },
       }}
     >
-      <Stack.Screen name="index" options={{ title: 'Địa chỉ của tôi' }} />
-      <Stack.Screen name="new" options={{ title: 'Thêm địa chỉ mới' }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="new" options={{ headerShown: false }} />
       <Stack.Screen name="[id]" options={{ headerShown: false }} />
     </Stack>
   );

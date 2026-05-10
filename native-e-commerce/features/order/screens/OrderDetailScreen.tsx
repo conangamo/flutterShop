@@ -34,7 +34,7 @@ function statusBadgeColor(status: OrderStatus) {
   }
 }
 
-const CANCELLABLE: OrderStatus[] = ['pending', 'processing'];
+const CANCELLABLE: OrderStatus[] = ['pending'];
 
 export default function OrderDetailScreen() {
   const locale = getAppLocale();
@@ -108,7 +108,7 @@ export default function OrderDetailScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Chi tiết đơn hàng' }} />
+        <Stack.Screen options={{ headerShown: false }} />
         <View className="flex-1 items-center justify-center bg-bg-primary">
           <ActivityIndicator size="large" color="#6C63FF" />
         </View>
@@ -119,7 +119,7 @@ export default function OrderDetailScreen() {
   if (error || !order) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Chi tiết đơn hàng' }} />
+        <Stack.Screen options={{ headerShown: false }} />
         <View className="flex-1 items-center justify-center bg-bg-primary px-6">
           <Text className="text-[18px] font-semibold text-text-primary">
             {L.orders.detailNotFoundTitle}
@@ -142,7 +142,7 @@ export default function OrderDetailScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Chi tiết đơn hàng' }} />
+      <Stack.Screen options={{ headerShown: false }} />
 
       <ScrollView
         className="flex-1 bg-bg-primary"
@@ -158,8 +158,12 @@ export default function OrderDetailScreen() {
               <Text className="mt-1 text-[12px] text-text-secondary">{formatDate(order.date)}</Text>
             </View>
             <View className={`rounded-full px-3 py-1.5 border ${badge.bg} ${badge.border}`}>
-              <Text className={`text-[12px] font-semibold capitalize ${badge.text}`}>
-                {order.status}
+              <Text className={`text-[12px] font-semibold ${badge.text}`}>
+                {order.status === 'pending' ? 'Chờ xử lý' : 
+                 order.status === 'processing' ? 'Đang xử lý' :
+                 order.status === 'shipped' ? 'Đang giao' :
+                 order.status === 'delivered' ? 'Đã giao' :
+                 order.status === 'cancelled' ? 'Đã hủy' : order.status}
               </Text>
             </View>
           </View>

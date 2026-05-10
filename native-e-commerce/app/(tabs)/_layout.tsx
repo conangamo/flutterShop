@@ -73,7 +73,7 @@ export default function TabLayout() {
         name="order"
         options={{
           title: 'Đơn hàng',
-          headerShown: true,
+          headerShown: false,
           tabBarIcon: ({ color }) => <TabBarIcon name="list-alt" color={color} />,
         }}
       />

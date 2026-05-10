@@ -44,11 +44,24 @@ const FREE_SHIPPING_THRESHOLD = 1_500_000;
 
 export default function CheckoutScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ promoCode?: string | string[] }>();
+  const params = useLocalSearchParams<{ promoCode?: string | string[]; selectedItems?: string | string[] }>();
   const locale = getAppLocale();
   const L = strings(locale);
-  const { items, clearCart } = useCart();
+  const { items: allCartItems, clearCart } = useCart();
   const { addToast } = useToast();
+  
+  // Filter items based on selectedItems param from cart
+  const selectedItemsParam = Array.isArray(params.selectedItems) ? params.selectedItems[0] : params.selectedItems;
+  const selectedKeys = selectedItemsParam ? selectedItemsParam.split(',') : [];
+  
+  // If selectedItems param exists, filter cart items; otherwise use all items (backward compatibility)
+  const items = selectedKeys.length > 0 
+    ? allCartItems.filter(it => {
+        const itemKey = `${it.product.id}::${it.variantId ?? ''}`;
+        return selectedKeys.includes(itemKey);
+      })
+    : allCartItems;
+  
   const [shippingAddresses, setShippingAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState('');
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState(
@@ -178,7 +191,7 @@ export default function CheckoutScreen() {
       <Stack.Screen
         options={{
           title: 'Thanh toán',
-          headerShadowVisible: false,
+          headerShown: false,
         }}
       />
 

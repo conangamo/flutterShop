@@ -4,6 +4,7 @@ export default function OrderLayout() {
   return (
     <Stack
       screenOptions={{
+        headerShown: false,
         headerStyle: {
           backgroundColor: '#0A0A0F',
         },
@@ -19,7 +20,7 @@ export default function OrderLayout() {
         },
       }}
     >
-      <Stack.Screen name="[id]" options={{ title: 'Chi tiết đơn hàng' }} />
+      <Stack.Screen name="[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }

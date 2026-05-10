@@ -54,7 +54,7 @@ export default function AddressFormScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: id ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-bg-primary p-4">
         <Text className="mb-2 font-semibold text-text-secondary text-xs uppercase tracking-widest">Tên người nhận</Text>
         <TextInput

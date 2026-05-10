@@ -13,32 +13,32 @@ type TestRouteItem = {
 };
 
 const TAB_ROUTES: TestRouteItem[] = [
-  { label: 'Home Tab', path: '/(tabs)' },
-  { label: 'Cart Tab', path: '/(tabs)/cart' },
-  { label: 'Order Tab', path: '/(tabs)/order' },
-  { label: 'Account Tab', path: '/(tabs)/account' },
+  { label: 'Trang chủ', path: '/(tabs)' },
+  { label: 'Giỏ hàng', path: '/(tabs)/cart' },
+  { label: 'Đơn hàng', path: '/(tabs)/order' },
+  { label: 'Tài khoản', path: '/(tabs)/account' },
 ];
 
 const AUTH_ROUTES: TestRouteItem[] = [
-  { label: 'Login', path: '/(auth)/login' },
-  { label: 'Signup', path: '/(auth)/signup' },
-  { label: 'Forgot Password', path: '/(auth)/forgot' },
+  { label: 'Đăng nhập', path: '/(auth)/login' },
+  { label: 'Đăng ký', path: '/(auth)/signup' },
+  { label: 'Quên mật khẩu', path: '/(auth)/forgot' },
 ];
 
 const FLOW_ROUTES: TestRouteItem[] = [
-  { label: 'Checkout', path: '/checkout' },
-  { label: 'Address', path: '/address' },
-  { label: 'Onboarding', path: '/onboarding' },
+  { label: 'Thanh toán', path: '/checkout' },
+  { label: 'Địa chỉ', path: '/address' },
+  { label: 'Giới thiệu', path: '/onboarding' },
   { label: 'Modal', path: '/modal' },
-  { label: 'Checkout Success', path: '/checkout-success' },
-  { label: 'Checkout Failure', path: '/checkout-failure' },
+  { label: 'Thanh toán thành công', path: '/checkout-success' },
+  { label: 'Thanh toán thất bại', path: '/checkout-failure' },
 ];
 
 const DETAIL_ROUTES: TestRouteItem[] = [
-  { label: 'Product Detail (sample)', path: '/product/jewelry-set-01' },
-  { label: 'Orders list', path: '/(tabs)/order' },
-  { label: 'Edit Profile', path: '/account/edit' },
-  { label: 'Addresses', path: '/addresses' },
+  { label: 'Chi tiết sản phẩm (mẫu)', path: '/product/jewelry-set-01' },
+  { label: 'Danh sách đơn hàng', path: '/(tabs)/order' },
+  { label: 'Chỉnh sửa hồ sơ', path: '/account/edit' },
+  { label: 'Sổ địa chỉ', path: '/addresses' },
 ];
 
 export default function Settings() {
@@ -47,7 +47,7 @@ export default function Settings() {
 
   const handleResetOnboarding = async () => {
     await resetOnboardingSeen();
-    addToast('success', 'Done', 'Onboarding has been reset. Reopen app to see it again.');
+    addToast('success', 'Hoàn tất', 'Đã đặt lại giới thiệu. Mở lại ứng dụng để xem lại.');
     console.log('Onboarding has been reset. Reopen app to see it again.');
   };
 
@@ -86,7 +86,7 @@ export default function Settings() {
 
   const actions: TestRouteItem[] = [
     {
-      label: 'Reset Onboarding',
+      label: 'Đặt lại giới thiệu',
       variant: 'outline',
       onPress: handleResetOnboarding,
     },
@@ -111,10 +111,10 @@ export default function Settings() {
           </Animated.View>
 
           <Section title="Tabs">{TAB_ROUTES.map((item, idx) => renderItem(item, idx))}</Section>
-          <Section title="Auth">{AUTH_ROUTES.map((item, idx) => renderItem(item, idx))}</Section>
-          <Section title="Flow">{FLOW_ROUTES.map((item, idx) => renderItem(item, idx))}</Section>
-          <Section title="Dynamic Detail Routes">{DETAIL_ROUTES.map((item, idx) => renderItem(item, idx))}</Section>
-          <Section title="Actions">{actions.map((item, idx) => renderItem(item, idx))}</Section>
+          <Section title="Xác thực">{AUTH_ROUTES.map((item, idx) => renderItem(item, idx))}</Section>
+          <Section title="Luồng">{FLOW_ROUTES.map((item, idx) => renderItem(item, idx))}</Section>
+          <Section title="Chi tiết động">{DETAIL_ROUTES.map((item, idx) => renderItem(item, idx))}</Section>
+          <Section title="Hành động">{actions.map((item, idx) => renderItem(item, idx))}</Section>
         </ScrollView>
       </View>
     </>

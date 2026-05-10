@@ -124,7 +124,7 @@ export default function AdminInventoryScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Admin · Tồn kho' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-[#F4F4F4]">
         <InventoryToolbar
           activeFilter={activeFilter}

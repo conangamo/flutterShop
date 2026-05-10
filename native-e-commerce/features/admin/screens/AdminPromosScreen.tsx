@@ -58,7 +58,7 @@ export default function AdminPromosScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Admin · Promo' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
         className="flex-1 bg-[#F4F4F4]"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>

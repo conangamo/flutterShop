@@ -23,14 +23,14 @@ function buildProductsQuery(filter?: ProductFilter): string {
 }
 
 export async function fetchCategories(): Promise<Category[]> {
-  return apiGet<Category[]>('categories');
+  return apiGet<Category[]>('categories', { skipAuth: true });
 }
 
 export async function fetchProducts(filter?: ProductFilter): Promise<ProductListPage> {
   const q = buildProductsQuery(filter);
-  return apiGet<ProductListPage>(`products${q}`);
+  return apiGet<ProductListPage>(`products${q}`, { skipAuth: true });
 }
 
 export async function fetchProductById(id: string): Promise<ProductDetail> {
-  return apiGet<ProductDetail>(`products/${encodeURIComponent(id)}`);
+  return apiGet<ProductDetail>(`products/${encodeURIComponent(id)}`, { skipAuth: true });
 }
