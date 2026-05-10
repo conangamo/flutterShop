@@ -17,7 +17,7 @@ export default function TabLayout() {
           
           // Pill Shape
           height: 64,
-          borderRadius: 32,
+          borderRadius: 32, 
           
           // Glassmorphism Effect
           backgroundColor: 'rgba(28, 28, 40, 0.9)', // Semi-transparent bg-elevated

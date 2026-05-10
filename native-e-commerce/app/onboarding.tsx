@@ -4,7 +4,7 @@ import {
   Animated,
   Dimensions,
   FlatList,
-  Image,
+  ImageBackground,
   Text,
   TouchableOpacity,
   View,
@@ -12,27 +12,28 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { setOnboardingSeen } from '~/lib/onboardingStorage';
+import { Logo } from '~/components/Logo';
 
 const { width } = Dimensions.get('window');
 
 const slides = [
   {
     id: '1',
-    image: require('~/assets/splash.png'),
-    title: 'Chọn sản phẩm',
-    subtitle: 'Tìm những món đồ trang sức đẹp nhất phù hợp với phong cách và ngân sách của bạn.',
+    image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80',
+    title: 'Khám phá xu hướng mới',
+    subtitle: 'Cập nhật những mẫu giày hot nhất thị trường.',
   },
   {
     id: '2',
-    image: require('~/assets/splash.png'),
-    title: 'Thanh toán',
-    subtitle: 'Thanh toán trong vài giây với quy trình bảo mật và phương thức ưa thích của bạn.',
+    image: 'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&w=800&q=80',
+    title: 'Chất lượng tuyệt đối',
+    subtitle: 'Cam kết giày chính hãng, kiểm định nghiêm ngặt.',
   },
   {
     id: '3',
-    image: require('~/assets/splash.png'),
-    title: 'Nhận đơn hàng',
-    subtitle: 'Theo dõi vận chuyển và nhận đơn hàng ngay tại nhà bạn.',
+    image: 'https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb?auto=format&fit=crop&w=800&q=80',
+    title: 'Trải nghiệm mua sắm tối ưu',
+    subtitle: 'Giao hàng thần tốc và đổi trả dễ dàng.',
   },
 ];
 
@@ -68,11 +69,18 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View className="flex-1 bg-bg-primary">
-      <View className="px-6 pt-14">
-        <TouchableOpacity className="self-end" onPress={finishOnboarding}>
-          <Text className="text-base font-semibold text-text-secondary">Bỏ qua</Text>
+    <View className="flex-1 bg-[#0A0A0F]">
+      {/* Header with Logo and Skip Button */}
+      <View className="px-6 pt-14 flex-row items-center justify-between">
+        <Logo size="medium" showText={true} />
+        <TouchableOpacity onPress={finishOnboarding}>
+          <Text className="text-base font-semibold text-[#8888A0]">Bỏ qua</Text>
         </TouchableOpacity>
+      </View>
+
+      {/* Subtitle */}
+      <View className="px-6 pt-2 pb-4">
+        <Text className="text-sm font-medium text-[#6C63FF]">Bộ sưu tập giày cao cấp</Text>
       </View>
 
       <Animated.FlatList
@@ -87,12 +95,24 @@ export default function OnboardingScreen() {
           useNativeDriver: false,
         })}
         renderItem={({ item }) => (
-          <View style={{ width }} className="items-center px-8 pt-4">
-            <Image source={item.image} className="h-[280px] w-[280px]" resizeMode="contain" />
-            <Text className="mt-8 text-center text-[34px] font-bold text-text-primary">
+          <View style={{ width }} className="items-center px-6 pt-8">
+            {/* Image with Dark Overlay */}
+            <View className="relative h-[340px] w-full overflow-hidden rounded-3xl border border-[#2A2A3A]">
+              <ImageBackground
+                source={{ uri: item.image }}
+                className="h-full w-full"
+                resizeMode="cover"
+              >
+                {/* Dark Overlay for Refined Dark Look */}
+                <View className="absolute inset-0 bg-black/40" />
+              </ImageBackground>
+            </View>
+
+            {/* Text Content */}
+            <Text className="mt-10 text-center text-[32px] font-bold leading-tight text-[#F0F0F5]">
               {item.title}
             </Text>
-            <Text className="mt-4 text-center text-base leading-6 text-text-secondary">
+            <Text className="mt-4 px-4 text-center text-base leading-6 text-[#8888A0]">
               {item.subtitle}
             </Text>
           </View>
@@ -100,20 +120,24 @@ export default function OnboardingScreen() {
       />
 
       <View className="px-8 pb-10 pt-6">
+        {/* Pagination Dots */}
         <View className="mb-8 flex-row items-center justify-center">
           {slides.map((_, index) => (
             <View
               key={index}
-              className={`mx-1 h-2 rounded-full ${currentIndex === index ? 'w-7 bg-accent' : 'w-2 bg-bg-elevated'}`}
+              className={`mx-1 h-2 rounded-full ${currentIndex === index ? 'w-8 bg-[#6C63FF]' : 'w-2 bg-[#2A2A3A]'}`}
             />
           ))}
         </View>
 
+        {/* Next/Get Started Button */}
         <TouchableOpacity
-          className="items-center rounded-full bg-accent py-4 shadow-lg"
-          onPress={nextSlide}>
-          <Text className="text-lg font-semibold text-white">
-            {isLastSlide ? 'Bắt đầu' : 'Tiếp theo'}
+          className="items-center rounded-2xl bg-[#6C63FF] py-4 shadow-lg"
+          onPress={nextSlide}
+          activeOpacity={0.8}
+        >
+          <Text className="text-lg font-bold text-white">
+            {isLastSlide ? 'Bắt đầu ngay' : 'Tiếp theo'}
           </Text>
         </TouchableOpacity>
       </View>

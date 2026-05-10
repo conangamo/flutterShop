@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { FlatList, ScrollView, Text, TouchableOpacity, View, useWindowDimensions, Pressable, Alert } from 'react-native';
+import { FlatList, ScrollView, Text, TouchableOpacity, View, useWindowDimensions, Pressable, Alert, Image } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -33,6 +33,16 @@ const DEFAULT_FILTER: FilterSheetState = {
   maxPrice: '',
   sort: 'newest',
 };
+
+// Real shoe brand logos for the brands section
+const SHOE_BRANDS = [
+  { id: '1', name: 'Nike', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/200px-Logo_NIKE.svg.png' },
+  { id: '2', name: 'Adidas', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/200px-Adidas_Logo.svg.png' },
+  { id: '3', name: 'Puma', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/da/Puma_complete_logo.svg/200px-Puma_complete_logo.svg.png' },
+  { id: '4', name: 'Reebok', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Reebok_2019_logo.svg/200px-Reebok_2019_logo.svg.png' },
+  { id: '5', name: 'Converse', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Converse_logo.svg/200px-Converse_logo.svg.png' },
+  { id: '6', name: 'Vans', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Vans-logo.svg/200px-Vans-logo.svg.png' },
+];
 
 export default function HomeScreen() {
   const locale = getAppLocale();
@@ -225,158 +235,176 @@ export default function HomeScreen() {
           >
             <View
               style={{
-                backgroundColor: '#1C1C28', // bg-elevated
+                backgroundColor: '#13131A', // bg-surface
                 padding: 24,
                 borderRadius: 24, // rounded-3xl for premium feel
                 borderWidth: 1,
                 borderColor: '#2A2A3A', // semantic-border
-                minHeight: 180,
-                justifyContent: 'center',
+                minHeight: 200,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 12 },
                 shadowOpacity: 0.35,
                 shadowRadius: 20,
                 elevation: 12,
-                overflow: 'hidden',
+                overflow: 'visible',
               }}
             >
-              {/* Accent glow circle — decorative only */}
-              <View
-                style={{
-                  position: 'absolute',
-                  right: -40,
-                  top: -40,
-                  width: 200,
-                  height: 200,
-                  borderRadius: 100,
-                  backgroundColor: 'rgba(108, 99, 255, 0.15)', // accent-glow
-                }}
-              />
-
-              {/* Badge label */}
-              <View
-                style={{
-                  alignSelf: 'flex-start',
-                  backgroundColor: 'rgba(108, 99, 255, 0.18)',
-                  borderWidth: 1,
-                  borderColor: 'rgba(108, 99, 255, 0.4)',
-                  borderRadius: 9999,
-                  paddingHorizontal: 14,
-                  paddingVertical: 6,
-                  marginBottom: 12,
-                  shadowColor: '#6C63FF',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.2,
-                  shadowRadius: 8,
-                }}
-              >
-                <Text
+              {/* Left Side - Text Content */}
+              <View style={{ flex: 1, zIndex: 2 }}>
+                {/* Badge label */}
+                <View
                   style={{
-                    color: '#6C63FF',
-                    fontSize: 11,
-                    fontWeight: '800',
-                    letterSpacing: 1.2,
+                    alignSelf: 'flex-start',
+                    backgroundColor: 'rgba(108, 99, 255, 0.18)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(108, 99, 255, 0.4)',
+                    borderRadius: 9999,
+                    paddingHorizontal: 14,
+                    paddingVertical: 6,
+                    marginBottom: 12,
+                    shadowColor: '#6C63FF',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.2,
+                    shadowRadius: 8,
                   }}
                 >
-                  LIMITED OFFER
+                  <Text
+                    style={{
+                      color: '#6C63FF',
+                      fontSize: 11,
+                      fontWeight: '800',
+                      letterSpacing: 1.2,
+                    }}
+                  >
+                    ƯU ĐÃI GIỚI HẠN
+                  </Text>
+                </View>
+
+                {/* Headline */}
+                <Text
+                  style={{
+                    color: '#F0F0F5',
+                    fontSize: 26,
+                    fontWeight: '800',
+                    letterSpacing: -0.6,
+                    marginBottom: 8,
+                    lineHeight: 32,
+                  }}
+                >
+                  BỘ SƯU TẬP MỚI
                 </Text>
+                <Text
+                  style={{
+                    color: '#8888A0',
+                    fontSize: 14,
+                    marginBottom: 20,
+                    lineHeight: 20,
+                  }}
+                >
+                  Khám phá ngay những mẫu giày hot nhất.
+                </Text>
+
+                {/* Mua Ngay button */}
+                <Pressable
+                  onPress={() => {
+                    Alert.alert('Thông báo', 'Chức năng mua sắm đang được phát triển!', [
+                      { text: 'OK', style: 'default' }
+                    ]);
+                  }}
+                  style={{
+                    alignSelf: 'flex-start',
+                    backgroundColor: '#6C63FF', // accent
+                    borderRadius: 24,
+                    paddingHorizontal: 22,
+                    paddingVertical: 12,
+                    shadowColor: '#6C63FF',
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 12,
+                    elevation: 6,
+                  }}
+                >
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 }}>
+                    Mua Ngay
+                  </Text>
+                </Pressable>
               </View>
 
-              {/* Headline */}
-              <Text
+              {/* Right Side - Dramatic Sneaker Image */}
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80' }}
                 style={{
-                  color: '#F0F0F5',
-                  fontSize: 26,
-                  fontWeight: '800',
-                  letterSpacing: -0.6,
-                  marginBottom: 8,
-                  lineHeight: 32,
+                  position: 'absolute',
+                  right: -16,
+                  top: -16,
+                  width: 160,
+                  height: 160,
+                  zIndex: 1,
                 }}
-              >
-                New Season Drops
-              </Text>
-              <Text
-                style={{
-                  color: '#8888A0',
-                  fontSize: 14,
-                  marginBottom: 20,
-                  lineHeight: 20,
-                }}
-              >
-                Discover the latest arrivals
-              </Text>
-
-              {/* Shop Now button */}
-              <Pressable
-                onPress={() => {
-                  Alert.alert('Thông báo', 'Đang tải bộ sưu tập mới...');
-                  setTimeout(() => router.push('/(tabs)/order'), 500);
-                }}
-                style={{
-                  alignSelf: 'flex-start',
-                  backgroundColor: '#6C63FF', // accent
-                  borderRadius: 14,
-                  paddingHorizontal: 22,
-                  paddingVertical: 12,
-                  shadowColor: '#6C63FF',
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.4,
-                  shadowRadius: 12,
-                  elevation: 6,
-                }}
-              >
-                <Text style={{ color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 }}>
-                  Shop Now
-                </Text>
-              </Pressable>
+                resizeMode="contain"
+              />
             </View>
           </Animated.View>
 
-          {/* === CATEGORY FILTER CHIPS === */}
-          <Animated.View entering={FadeInDown.duration(500).delay(200)}>
+          {/* === BRANDS SECTION === */}
+          <Animated.View
+            entering={FadeInDown.duration(500).delay(150)}
+            style={{
+              marginBottom: 20,
+            }}
+          >
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingHorizontal: 16,
-                gap: 10,
-                paddingVertical: 4,
-                paddingBottom: 16,
-              }}
+              contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
             >
-              {homeCategories.map((category) => {
-                const isActive = activeCategory === category.id;
-                return (
-                  <Pressable
-                    key={category.id}
-                    onPress={() => setActiveCategory(isActive ? null : category.id)}
+              {SHOE_BRANDS.map((brand) => (
+                <Pressable
+                  key={brand.id}
+                  style={{ alignItems: 'center', width: 60 }}
+                >
+                  {/* White Circle Container */}
+                  <View
                     style={{
-                      backgroundColor: isActive ? '#6C63FF' : '#1C1C28',
-                      borderRadius: 9999,
-                      borderWidth: 1,
-                      borderColor: isActive ? '#6C63FF' : '#2A2A3A',
-                      paddingHorizontal: 18,
-                      paddingVertical: 10,
-                      shadowColor: isActive ? '#6C63FF' : '#000',
-                      shadowOffset: { width: 0, height: isActive ? 6 : 2 },
-                      shadowOpacity: isActive ? 0.4 : 0.15,
-                      shadowRadius: isActive ? 12 : 6,
-                      elevation: isActive ? 6 : 2,
+                      width: 60,
+                      height: 60,
+                      borderRadius: 30,
+                      backgroundColor: '#FFFFFF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 8,
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.15,
+                      shadowRadius: 8,
+                      elevation: 4,
                     }}
                   >
-                    <Text
-                      style={{
-                        color: isActive ? '#FFFFFF' : '#8888A0',
-                        fontSize: 14,
-                        fontWeight: '700',
-                        letterSpacing: 0.3,
-                      }}
-                    >
-                      {category.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+                    {/* Brand Logo */}
+                    <Image
+                      source={{ uri: brand.logo }}
+                      style={{ width: 40, height: 40 }}
+                      resizeMode="contain"
+                    />
+                  </View>
+
+                  {/* Brand Name */}
+                  <Text
+                    numberOfLines={1}
+                    style={{
+                      color: '#F0F0F5',
+                      fontSize: 12,
+                      fontWeight: '500',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {brand.name}
+                  </Text>
+                </Pressable>
+              ))}
             </ScrollView>
           </Animated.View>
 

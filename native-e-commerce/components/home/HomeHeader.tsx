@@ -1,6 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Logo } from '../Logo';
 
 type Props = {
   searchValue?: string;
@@ -14,28 +15,7 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Prop
   return (
     <View style={{ paddingTop: insets.top + 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View 
-            style={{ 
-              height: 36, 
-              width: 36, 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              borderRadius: 9999, 
-              backgroundColor: '#6C63FF',
-              shadowColor: '#6C63FF',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 8,
-              elevation: 4,
-            }}
-          >
-            <View style={{ height: 20, width: 20, borderRadius: 9999, borderWidth: 3, borderColor: 'rgba(108, 99, 255, 0.3)' }} />
-          </View>
-          <Text style={{ fontSize: 30, fontWeight: '800', letterSpacing: 0.5, color: '#F0F0F5' }}>
-            StepUp
-          </Text>
-        </View>
+        <Logo size="medium" showText={true} />
 
         <Image
           source={{
