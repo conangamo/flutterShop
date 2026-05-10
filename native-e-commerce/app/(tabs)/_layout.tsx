@@ -7,28 +7,42 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        // === TAB BAR CONTAINER ===
+        // === FLOATING GLASSMORPHISM TAB BAR ===
         tabBarStyle: {
-          backgroundColor: '#1C1C28', // bg-elevated
-          borderTopWidth: 0, // Remove the default top border line
-          elevation: 0, // Android: remove shadow
-          shadowOpacity: 0, // iOS: remove shadow
-          height: 64, // Slightly taller for breathing room
-          paddingBottom: 10, // Lift icons from the very bottom edge
+          // Floating Effect
+          position: 'absolute',
+          bottom: 24,
+          left: 20,
+          right: 20,
+          
+          // Pill Shape
+          height: 64,
+          borderRadius: 32,
+          
+          // Glassmorphism Effect
+          backgroundColor: 'rgba(28, 28, 40, 0.9)', // Semi-transparent bg-elevated
+          
+          // Border & Shadow
+          borderWidth: 1,
+          borderColor: 'rgba(255, 255, 255, 0.1)',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.3,
+          shadowRadius: 20,
+          elevation: 10,
+          
+          // Remove default styling
+          borderTopWidth: 0,
+          paddingBottom: 8,
           paddingTop: 8,
         },
 
         // === ICON & LABEL COLORS ===
         tabBarActiveTintColor: '#6C63FF', // accent — active tab
-        tabBarInactiveTintColor: '#444455', // text-muted — inactive tabs
+        tabBarInactiveTintColor: '#888899', // Slightly brighter for glass effect
 
-        // === LABEL STYLING ===
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '600',
-          letterSpacing: 0.4,
-          marginTop: 2,
-        },
+        // === MINIMALIST APPROACH - NO LABELS ===
+        tabBarShowLabel: false,
 
         // === HEADER (for tab screens that show a header) ===
         headerStyle: {

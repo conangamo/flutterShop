@@ -1,5 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type Props = {
   searchValue?: string;
@@ -8,8 +9,10 @@ type Props = {
 };
 
 export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Props) {
+  const insets = useSafeAreaInsets();
+  
   return (
-    <>
+    <View style={{ paddingTop: insets.top + 10 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <View 
@@ -95,6 +98,6 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Prop
           <Feather name="mic" size={18} color="#6C63FF" />
         </TouchableOpacity>
       </View>
-    </>
+    </View>
   );
 }

@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { FlatList, ScrollView, Text, TouchableOpacity, View, useWindowDimensions, Pressable } from 'react-native';
+import { FlatList, ScrollView, Text, TouchableOpacity, View, useWindowDimensions, Pressable, Alert } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -9,6 +9,7 @@ import Animated, {
   withTiming,
   withRepeat,
 } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 
 import { FilterSheet, type FilterSheetState } from '../../components/home/FilterSheet';
 import { HomeHeader } from '../../components/home/HomeHeader';
@@ -36,6 +37,7 @@ const DEFAULT_FILTER: FilterSheetState = {
 export default function HomeScreen() {
   const locale = getAppLocale();
   const L = strings(locale);
+  const router = useRouter();
   const { width } = useWindowDimensions();
   const numColumns = width >= 1180 ? 4 : width >= 860 ? 3 : 2;
   const gridGap = 12;
@@ -198,12 +200,11 @@ export default function HomeScreen() {
       <Stack.Screen options={{ title: 'Trang chủ', headerShown: false }} />
 
       <View style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
           {/* === HEADER ROW === */}
           <View
             style={{
               paddingHorizontal: 16,
-              paddingTop: 20,
               paddingBottom: 16,
             }}
           >
@@ -307,6 +308,10 @@ export default function HomeScreen() {
 
               {/* Shop Now button */}
               <Pressable
+                onPress={() => {
+                  Alert.alert('Thông báo', 'Đang tải bộ sưu tập mới...');
+                  setTimeout(() => router.push('/(tabs)/order'), 500);
+                }}
                 style={{
                   alignSelf: 'flex-start',
                   backgroundColor: '#6C63FF', // accent
@@ -498,16 +503,12 @@ export default function HomeScreen() {
                   pointerEvents={productsLoading ? 'none' : 'auto'}
                 >
                   <FlatList
-                    key={`grid-${numColumns}`}
+                    key={`grid-2`}
                     data={homeProducts}
-                    renderItem={({ item }) => (
-                      <View style={{ width: cardWidth }}>
-                        <ProductCard product={item} cardWidth={cardWidth} />
-                      </View>
-                    )}
+                    renderItem={({ item }) => <ProductCard product={item} />}
                     keyExtractor={(p) => p.id}
-                    numColumns={numColumns}
-                    columnWrapperStyle={{ gap: gridGap, justifyContent: 'flex-start' }}
+                    numColumns={2}
+                    columnWrapperStyle={{ gap: 12, marginBottom: 16 }}
                     scrollEnabled={false}
                     showsVerticalScrollIndicator={false}
                   />

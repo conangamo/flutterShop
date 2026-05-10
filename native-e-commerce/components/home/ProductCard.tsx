@@ -20,153 +20,85 @@ function ProductCardBase({ product, cardWidth }: Props) {
   const router = useRouter();
   const bestStock = product.variants.reduce((max, v) => Math.max(max, v.stock), 0);
   
-  // --- Press animation (purely visual feedback) ---
+  // --- Press animation for premium interaction feedback ---
   const scaleValue = useSharedValue(1);
   const animatedCardStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scaleValue.value }],
   }));
   
   return (
-    // Outer Animated wrapper — handles the scale spring animation
     <Animated.View
-      style={[
-        animatedCardStyle,
-        {
-          width: cardWidth || undefined,
-          borderRadius: 24, // rounded-3xl for premium feel
-          // Elegant shadow — soft, deep, floating effect
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 12 },
-          shadowOpacity: 0.45,
-          shadowRadius: 20,
-          elevation: 16, // Android shadow
-          marginBottom: 20,
-        },
-      ]}
+      style={[animatedCardStyle]}
+      className="w-[48%] bg-[#13131A] rounded-2xl border border-[#2A2A3A] overflow-hidden shadow-lg"
     >
-      {/* Pressable wraps the entire card */}
       <Pressable
         onPress={() => router.push(`/product/${encodeURIComponent(product.id)}`)}
-        onPressIn={() => { scaleValue.value = withSpring(0.96); }}
+        onPressIn={() => { scaleValue.value = withSpring(0.97); }}
         onPressOut={() => { scaleValue.value = withSpring(1.0); }}
-        style={{
-          backgroundColor: '#13131A', // bg-surface
-          borderRadius: 24, // rounded-3xl
-          overflow: 'hidden',
-          borderWidth: 1,
-          borderColor: '#2A2A3A', // semantic-border
-        }}
       >
-        {/* === IMAGE ZONE: 65% of the card's visual height === */}
-        <View style={{ aspectRatio: 0.85, width: '100%' }}>
+        {/* === PRODUCT IMAGE SECTION === */}
+        <View className="w-full aspect-[4/3] bg-[#0A0A0F] overflow-hidden rounded-b-2xl">
           <Image
             source={{ uri: product.image }}
-            style={{ width: '100%', height: '100%' }}
+            className="w-full h-full"
             resizeMode="cover"
           />
           
-          {/* CONDITIONAL discount badge — render only if discount exists */}
+          {/* Discount Badge - Top Left */}
           {product.discount && (
-            <View
-              style={{
-                position: 'absolute',
-                top: 12,
-                left: 12,
-                backgroundColor: '#FF6584', // accent-coral
-                borderRadius: 9999,
-                paddingHorizontal: 12,
-                paddingVertical: 6,
-                shadowColor: '#FF6584',
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 8,
-                elevation: 4,
-              }}
-            >
-              <Text
-                style={{ color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 0.3 }}
-              >
+            <View className="absolute top-2 left-2 bg-[#FF6584]/20 rounded-full px-2 py-1">
+              <Text className="text-[#FF6584] text-[9px] font-bold">
                 {product.discount}
               </Text>
             </View>
           )}
           
-          {/* Stock badge — TOP RIGHT */}
-          <View
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              backgroundColor: 'rgba(19, 19, 26, 0.85)', // bg-surface with opacity
-              borderRadius: 9999,
-              paddingHorizontal: 10,
-              paddingVertical: 6,
-              borderWidth: 1,
-              borderColor: 'rgba(42, 42, 58, 0.6)',
-            }}
-          >
+          {/* Stock Badge - Top Right */}
+          <View className="absolute top-2 right-2 rounded-full px-2 py-1 bg-[#13131A]/90 border border-[#2A2A3A]/80">
             {bestStock > 0 ? (
-              <Text style={{ color: '#3ECF8E', fontSize: 11, fontWeight: '700', letterSpacing: 0.2 }}>
+              <Text className="text-[#3ECF8E] text-[9px] font-bold">
                 Còn hàng
               </Text>
             ) : (
-              <Text style={{ color: '#FF6584', fontSize: 11, fontWeight: '700', letterSpacing: 0.2 }}>
+              <Text className="text-[#FF6584] text-[9px] font-bold">
                 Hết hàng
               </Text>
             )}
           </View>
         </View>
         
-        {/* === INFO ZONE: Product name, price, rating === */}
-        <View style={{ padding: 16, gap: 8 }}>
-          {/* Product Name — single line, ellipsis overflow */}
+        {/* === PRODUCT INFO SECTION === */}
+        <View className="p-3 flex-col flex-1">
+          {/* Product Title */}
           <Text
             numberOfLines={1}
-            style={{
-              color: '#F0F0F5', // text-primary
-              fontSize: 16,
-              fontWeight: '700',
-              letterSpacing: 0.2,
-            }}
+            className="text-[#F0F0F5] text-[15px] font-bold mb-1 leading-tight"
           >
             {product.name}
           </Text>
           
-          {/* Description — single line */}
+          {/* Product Description */}
           <Text
             numberOfLines={1}
-            style={{
-              color: '#8888A0', // text-secondary
-              fontSize: 13,
-              lineHeight: 18,
-            }}
+            className="text-[#8888A0] text-[12px] mb-2"
           >
             {product.description}
           </Text>
           
-          {/* Price Row */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
-            <Text
-              style={{
-                color: '#6C63FF', // accent
-                fontSize: 19,
-                fontWeight: '800',
-                letterSpacing: 0.3,
-              }}
-            >
+          {/* Price & Rating - Bottom Aligned */}
+          <View className="mt-auto">
+            {/* Price */}
+            <Text className="text-[#6C63FF] text-[16px] font-bold mb-1">
               {formatCurrency(product.price)}
             </Text>
-          </View>
-          
-          {/* Rating Row */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 }}>
-            <Ionicons name="star" size={15} color="#FFC107" />
-            <Ionicons name="star" size={15} color="#FFC107" />
-            <Ionicons name="star" size={15} color="#FFC107" />
-            <Ionicons name="star" size={15} color="#FFC107" />
-            <Text style={{ color: '#8888A0', fontSize: 13, marginLeft: 4, fontWeight: '500' }}>
-              {product.rating.toFixed(1)} ({product.reviews})
-            </Text>
+            
+            {/* Rating Row - Minimalist Shopee Style */}
+            <View className="flex-row items-center gap-1">
+              <Ionicons name="star" size={12} color="#FFD700" />
+              <Text className="text-[#8888A0] text-[11px] font-medium">
+                {product.rating.toFixed(1)} ({product.reviews})
+              </Text>
+            </View>
           </View>
         </View>
       </Pressable>
