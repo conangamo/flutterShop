@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { FlatList, ScrollView, Text, TouchableOpacity, View, useWindowDimensions, Pressable, Alert, Image } from 'react-native';
+import { FlatList, ScrollView, Text, TouchableOpacity, View, Pressable, Alert, Image } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -9,7 +9,6 @@ import Animated, {
   withTiming,
   withRepeat,
 } from 'react-native-reanimated';
-import { useRouter } from 'expo-router';
 
 import { FilterSheet, type FilterSheetState } from '../../components/home/FilterSheet';
 import { HomeHeader } from '../../components/home/HomeHeader';
@@ -17,6 +16,7 @@ import { PillButton } from '../../components/home/PillButton';
 import { ProductCard } from '../../components/home/ProductCard';
 import { EmptyBlock, ErrorBlock } from '~/components/ui/StateBlocks';
 import { CATALOG_PAGE_SIZE, fetchCategories, fetchProducts } from '~/lib/api/catalog';
+import { searchProductsByImage } from '~/lib/api/visual-search';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
 import type { Category } from '../../lib/types/models';
@@ -34,28 +34,56 @@ const DEFAULT_FILTER: FilterSheetState = {
   sort: 'newest',
 };
 
-// Real shoe brand logos for the brands section
-const SHOE_BRANDS = [
-  { id: '1', name: 'Nike', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/200px-Logo_NIKE.svg.png' },
-  { id: '2', name: 'Adidas', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/200px-Adidas_Logo.svg.png' },
-  { id: '3', name: 'Puma', logo: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/da/Puma_complete_logo.svg/200px-Puma_complete_logo.svg.png' },
-  { id: '4', name: 'Reebok', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Reebok_2019_logo.svg/200px-Reebok_2019_logo.svg.png' },
-  { id: '5', name: 'Converse', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Converse_logo.svg/200px-Converse_logo.svg.png' },
-  { id: '6', name: 'Vans', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Vans-logo.svg/200px-Vans-logo.svg.png' },
-];
+// Brand logo mapping - maps brand names from BE to their logos
+// Using reliable PNG URLs that work consistently
+const BRAND_LOGO_MAP: Record<string, string> = {
+  'Nike': 'https://pngimg.com/uploads/nike/nike_PNG11.png',
+  'Adidas': 'https://pngimg.com/uploads/adidas/adidas_PNG8.png',
+  'Puma': 'https://purepng.com/public/uploads/large/purepng.com-puma-logopumabrand-logoiconssymbols-puma-681522783020s3ofl.png',
+  'Reebok': 'https://pngimg.com/uploads/reebok/reebok_PNG12.png',
+  'Converse': 'https://pngimg.com/uploads/converse/converse_PNG26.png',
+  'Vans': 'https://pngimg.com/uploads/vans/vans_PNG6.png',
+  'New Balance': 'https://logos-world.net/wp-content/uploads/2020/09/New-Balance-Logo.png',
+  'Asics': 'https://logos-world.net/wp-content/uploads/2020/09/ASICS-Logo.png',
+  'Under Armour': 'https://logos-world.net/wp-content/uploads/2020/09/Under-Armour-Logo.png',
+  'Skechers': 'https://logos-world.net/wp-content/uploads/2020/11/Skechers-Logo.png',
+  'Fila': 'https://logos-world.net/wp-content/uploads/2020/09/Fila-Logo.png',
+  'Jordan': 'https://logos-world.net/wp-content/uploads/2020/09/Jordan-Logo.png',
+};
+
+// Helper function to get brand logo URL with fuzzy matching
+function getBrandLogoUrl(brandName: string | null | undefined): string | null {
+  if (!brandName) return null;
+  
+  const normalized = brandName.toLowerCase().trim();
+  
+  // Check for exact match first (case-insensitive)
+  for (const [key, url] of Object.entries(BRAND_LOGO_MAP)) {
+    if (key.toLowerCase() === normalized) {
+      return url;
+    }
+  }
+  
+  // Check for partial match (contains)
+  if (normalized.includes('nike')) return BRAND_LOGO_MAP['Nike'];
+  if (normalized.includes('adidas')) return BRAND_LOGO_MAP['Adidas'];
+  if (normalized.includes('puma')) return BRAND_LOGO_MAP['Puma'];
+  if (normalized.includes('reebok')) return BRAND_LOGO_MAP['Reebok'];
+  if (normalized.includes('converse')) return BRAND_LOGO_MAP['Converse'];
+  if (normalized.includes('vans')) return BRAND_LOGO_MAP['Vans'];
+  if (normalized.includes('new balance')) return BRAND_LOGO_MAP['New Balance'];
+  if (normalized.includes('asics')) return BRAND_LOGO_MAP['Asics'];
+  if (normalized.includes('under armour')) return BRAND_LOGO_MAP['Under Armour'];
+  if (normalized.includes('skechers')) return BRAND_LOGO_MAP['Skechers'];
+  if (normalized.includes('fila')) return BRAND_LOGO_MAP['Fila'];
+  if (normalized.includes('jordan')) return BRAND_LOGO_MAP['Jordan'];
+  
+  return null;
+}
 
 export default function HomeScreen() {
   const locale = getAppLocale();
   const L = strings(locale);
-  const router = useRouter();
-  const { width } = useWindowDimensions();
-  const numColumns = width >= 1180 ? 4 : width >= 860 ? 3 : 2;
-  const gridGap = 12;
-  const containerHorizontal = 16 * 2;
-  const cardWidth = Math.max(
-    150,
-    Math.floor((width - containerHorizontal - gridGap * (numColumns - 1)) / numColumns)
-  );
 
   const [homeCategories, setHomeCategories] = useState<Category[]>([]);
   const [homeProducts, setHomeProducts] = useState<ProductSummary[]>([]);
@@ -67,8 +95,11 @@ export default function HomeScreen() {
   const [searchInput, setSearchInput] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeBrand, setActiveBrand] = useState<string | null>(null);
   const [filterState, setFilterState] = useState<FilterSheetState>(DEFAULT_FILTER);
   const [showFilter, setShowFilter] = useState(false);
+  const [visualSearchActive, setVisualSearchActive] = useState(false);
+  const [visualSearchLoading, setVisualSearchLoading] = useState(false);
 
   // --- Shimmer animation for loading skeleton ---
   const shimmerValue = useSharedValue(0);
@@ -105,15 +136,34 @@ export default function HomeScreen() {
     () => ({
       categoryId: activeCategory ?? undefined,
       search: activeSearch || undefined,
-      size: filterState.size ?? undefined,
-      color: filterState.color ?? undefined,
-      inStock: filterState.inStock || undefined,
-      sort: filterState.sort,
-      minPrice: filterState.minPrice ? Number(filterState.minPrice) : undefined,
-      maxPrice: filterState.maxPrice ? Number(filterState.maxPrice) : undefined,
+      size: filterState?.size ?? undefined,
+      color: filterState?.color ?? undefined,
+      inStock: filterState?.inStock || undefined,
+      sort: filterState?.sort ?? 'newest',
+      minPrice: filterState?.minPrice ? Number(filterState.minPrice) : undefined,
+      maxPrice: filterState?.maxPrice ? Number(filterState.maxPrice) : undefined,
     }),
     [activeCategory, activeSearch, filterState]
   );
+
+  // Extract unique brands from products and filter by activeBrand
+  const uniqueBrands = useMemo(() => {
+    if (!homeProducts || !Array.isArray(homeProducts)) return [];
+    const brandSet = new Set<string>();
+    homeProducts.forEach(p => {
+      if (p?.brand && p.brand.trim()) {
+        brandSet.add(p.brand.trim());
+      }
+    });
+    return Array.from(brandSet).sort();
+  }, [homeProducts]);
+
+  // Client-side brand filtering (since BE doesn't have brand filter endpoint)
+  const displayedProducts = useMemo(() => {
+    if (!homeProducts || !Array.isArray(homeProducts)) return [];
+    if (!activeBrand) return homeProducts;
+    return homeProducts.filter(p => p?.brand?.trim() === activeBrand);
+  }, [homeProducts, activeBrand]);
 
   const filterKey = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
   const prevFilterKeyRef = useRef<string | null>(null);
@@ -134,14 +184,14 @@ export default function HomeScreen() {
           }),
         ]);
         setHomeCategories(
-          cats.map((c) => ({
+          Array.isArray(cats) ? cats.map((c) => ({
             ...c,
             image: c.image && c.image.length > 0 ? c.image : CATEGORY_PLACEHOLDER,
-          }))
+          })) : []
         );
-        setHomeProducts(prodPage.items);
-        setTotalProducts(prodPage.total);
-        const pages = Math.max(1, Math.ceil(prodPage.total / CATALOG_PAGE_SIZE));
+        setHomeProducts(Array.isArray(prodPage?.items) ? prodPage.items : []);
+        setTotalProducts(prodPage?.total ?? 0);
+        const pages = Math.max(1, Math.ceil((prodPage?.total ?? 0) / CATALOG_PAGE_SIZE));
         if (pageNum > pages) {
           setPage(pages);
         }
@@ -161,6 +211,9 @@ export default function HomeScreen() {
   );
 
   useEffect(() => {
+    // Skip normal loading if visual search is active
+    if (visualSearchActive) return;
+    
     const filterChanged =
       prevFilterKeyRef.current !== null && prevFilterKeyRef.current !== filterKey;
     prevFilterKeyRef.current = filterKey;
@@ -171,7 +224,7 @@ export default function HomeScreen() {
     }
 
     void loadPage(page);
-  }, [page, filterKey, loadPage]);
+  }, [page, filterKey, loadPage, visualSearchActive]);
 
   const totalPages =
     totalProducts > 0 ? Math.max(1, Math.ceil(totalProducts / CATALOG_PAGE_SIZE)) : 1;
@@ -181,20 +234,68 @@ export default function HomeScreen() {
   );
 
   const availableColors = useMemo(() => {
+    if (!displayedProducts || !Array.isArray(displayedProducts)) return [];
     const set = new Set<string>();
-    for (const p of homeProducts) {
+    for (const p of displayedProducts) {
+      if (!p?.variants || !Array.isArray(p.variants)) continue;
       for (const v of p.variants) {
-        if (v.color) set.add(v.color);
+        if (v?.color) set.add(v.color);
       }
     }
     return Array.from(set);
-  }, [homeProducts]);
+  }, [displayedProducts]);
 
   const onApplyFilter = () => {
     setShowFilter(false);
   };
   const onResetFilter = () => {
     setFilterState(DEFAULT_FILTER);
+    setActiveBrand(null);
+    setVisualSearchActive(false);
+  };
+
+  const handleVisualSearch = async (imageUri: string) => {
+    setVisualSearchLoading(true);
+    setError(null);
+    
+    try {
+      // Call AI backend for visual search
+      const results = await searchProductsByImage(imageUri, 20);
+      
+      // Ensure results is always an array
+      const safeResults = Array.isArray(results) ? results : [];
+      
+      // Update products with AI results
+      setHomeProducts(safeResults);
+      setTotalProducts(safeResults.length);
+      setVisualSearchActive(true);
+      
+      // Clear other filters
+      setActiveSearch('');
+      setSearchInput('');
+      setActiveCategory(null);
+      setActiveBrand(null);
+      setPage(1);
+      
+      // Graceful handling for empty results (AI embeddings not yet indexed)
+      if (safeResults.length === 0) {
+        // Don't throw error - this is expected when AI embeddings need re-indexing
+        // The EmptyBlock component will handle the UI display
+        console.log('[Visual Search] No results - AI embeddings may need re-indexing');
+      }
+    } catch (e) {
+      const msg = e instanceof ApiError 
+        ? resolveApiError(e, locale) 
+        : 'Không thể xử lý tìm kiếm hình ảnh. Vui lòng thử lại.';
+      setError(msg);
+      Alert.alert('Lỗi', msg, [{ text: 'OK' }]);
+      setVisualSearchActive(false);
+      // Reset to empty array on error to prevent undefined issues
+      setHomeProducts([]);
+      setTotalProducts(0);
+    } finally {
+      setVisualSearchLoading(false);
+    }
   };
 
   const activeFilterCount =
@@ -222,6 +323,7 @@ export default function HomeScreen() {
               searchValue={searchInput}
               onSearchChange={setSearchInput}
               onSubmitSearch={() => setActiveSearch(searchInput.trim())}
+              onVisualSearch={handleVisualSearch}
             />
           </View>
 
@@ -333,15 +435,16 @@ export default function HomeScreen() {
                 </Pressable>
               </View>
 
-              {/* Right Side - Dramatic Sneaker Image */}
+              {/* Right Side - Dramatic Sneaker Image with 3D Pop-out Effect */}
               <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80' }}
+                source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Air_Jordan_1_retro_high_OG.png' }}
                 style={{
                   position: 'absolute',
-                  right: -16,
-                  top: -16,
-                  width: 160,
-                  height: 160,
+                  right: -30,
+                  top: -40,
+                  width: 180,
+                  height: 180,
+                  transform: [{ rotate: '-15deg' }],
                   zIndex: 1,
                 }}
                 resizeMode="contain"
@@ -361,50 +464,20 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
             >
-              {SHOE_BRANDS.map((brand) => (
-                <Pressable
-                  key={brand.id}
-                  style={{ alignItems: 'center', width: 60 }}
-                >
-                  {/* White Circle Container */}
-                  <View
-                    style={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 30,
-                      backgroundColor: '#FFFFFF',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginBottom: 8,
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 4 },
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                      elevation: 4,
-                    }}
-                  >
-                    {/* Brand Logo */}
-                    <Image
-                      source={{ uri: brand.logo }}
-                      style={{ width: 40, height: 40 }}
-                      resizeMode="contain"
-                    />
-                  </View>
-
-                  {/* Brand Name */}
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      color: '#F0F0F5',
-                      fontSize: 12,
-                      fontWeight: '500',
-                      textAlign: 'center',
-                    }}
-                  >
-                    {brand.name}
-                  </Text>
-                </Pressable>
-              ))}
+              {uniqueBrands.map((brandName) => {
+                const isActive = activeBrand === brandName;
+                const logoUrl = getBrandLogoUrl(brandName);
+                
+                return (
+                  <BrandLogoButton
+                    key={brandName}
+                    brandName={brandName}
+                    logoUrl={logoUrl}
+                    isActive={isActive}
+                    onPress={() => setActiveBrand(isActive ? null : brandName)}
+                  />
+                );
+              })}
             </ScrollView>
           </Animated.View>
 
@@ -456,8 +529,17 @@ export default function HomeScreen() {
           </Animated.View>
 
           {/* === ACTIVE FILTER BADGES === */}
-          {(activeSearch || activeCategory || activeFilterCount > 0) ? (
+          {(activeSearch || activeCategory || activeBrand || activeFilterCount > 0 || visualSearchActive) ? (
             <View style={{ marginBottom: 8, flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, gap: 8 }}>
+              {visualSearchActive ? (
+                <ChipBadge
+                  label="🔍 Tìm kiếm bằng hình ảnh"
+                  onClear={() => {
+                    setVisualSearchActive(false);
+                    void loadPage(1);
+                  }}
+                />
+              ) : null}
               {activeSearch ? (
                 <ChipBadge
                   label={`"${activeSearch}"`}
@@ -473,6 +555,12 @@ export default function HomeScreen() {
                     homeCategories.find((c) => c.id === activeCategory)?.label ?? activeCategory
                   }
                   onClear={() => setActiveCategory(null)}
+                />
+              ) : null}
+              {activeBrand ? (
+                <ChipBadge
+                  label={activeBrand}
+                  onClear={() => setActiveBrand(null)}
                 />
               ) : null}
               {filterState.size ? (
@@ -498,7 +586,7 @@ export default function HomeScreen() {
 
           {/* === PRODUCT GRID OR LOADING/ERROR STATES === */}
           <View style={{ paddingHorizontal: 16, marginTop: 8 }}>
-            {loading ? (
+            {loading || visualSearchLoading ? (
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 16 }}>
                 <SkeletonCard />
                 <SkeletonCard />
@@ -514,16 +602,32 @@ export default function HomeScreen() {
                 cta="Xóa bộ lọc"
                 onPress={() => {
                   setActiveCategory(null);
+                  setActiveBrand(null);
                   setActiveSearch('');
                   setSearchInput('');
                   setFilterState(DEFAULT_FILTER);
+                  setVisualSearchActive(false);
+                }}
+              />
+            ) : displayedProducts.length === 0 ? (
+              <EmptyBlock
+                title={visualSearchActive ? "Không tìm thấy sản phẩm nào khớp với hình ảnh" : "Không có sản phẩm của thương hiệu này"}
+                hint={visualSearchActive ? "Đang chờ hệ thống AI cập nhật dữ liệu mới." : "Thử chọn thương hiệu khác hoặc xóa bộ lọc."}
+                cta={visualSearchActive ? "Thử lại" : "Xóa bộ lọc"}
+                onPress={() => {
+                  if (visualSearchActive) {
+                    setVisualSearchActive(false);
+                    void loadPage(1);
+                  } else {
+                    setActiveBrand(null);
+                  }
                 }}
               />
             ) : (
               <Animated.View entering={FadeInDown.duration(600).delay(400)}>
                 <Text style={{ marginBottom: 16, fontSize: 12, color: '#8888A0', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: '600' }}>
-                  {totalProducts > 0
-                    ? `Trang ${page} / ${totalPages} · ${totalProducts} sản phẩm`
+                  {displayedProducts.length > 0
+                    ? `Trang ${page} / ${totalPages} · ${displayedProducts.length} sản phẩm${activeBrand ? ` (${activeBrand})` : ''}`
                     : 'Không có sản phẩm'}
                 </Text>
                 <View
@@ -532,9 +636,9 @@ export default function HomeScreen() {
                 >
                   <FlatList
                     key={`grid-2`}
-                    data={homeProducts}
+                    data={displayedProducts}
                     renderItem={({ item }) => <ProductCard product={item} />}
-                    keyExtractor={(p) => p.id}
+                    keyExtractor={(p, index) => `${p.id}-${index}`}
                     numColumns={2}
                     columnWrapperStyle={{ gap: 12, marginBottom: 16 }}
                     scrollEnabled={false}
@@ -716,5 +820,69 @@ function ChipBadge({ label, onClear }: { label: string; onClear: () => void }) {
         &times;
       </Text>
     </View>
+  );
+}
+
+// Brand Logo Button Component with Fallback
+function BrandLogoButton({ 
+  brandName, 
+  logoUrl, 
+  isActive, 
+  onPress 
+}: { 
+  brandName: string; 
+  logoUrl: string | null; 
+  isActive: boolean; 
+  onPress: () => void;
+}) {
+  const [imageError, setImageError] = useState(false);
+  
+  // Fallback URL for Puma specifically
+  const fallbackUrl = brandName === 'Puma' 
+    ? 'https://purepng.com/public/uploads/large/purepng.com-puma-logopumabrand-logoiconssymbols-puma-681522783020s3ofl.png'
+    : null;
+  
+  const displayUrl = imageError && fallbackUrl ? fallbackUrl : logoUrl;
+  
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{ alignItems: 'center' }}
+    >
+      <View
+        style={{
+          width: 64,
+          height: 64,
+          borderRadius: 32,
+          backgroundColor: '#FFFFFF',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginHorizontal: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.15,
+          shadowRadius: 8,
+          elevation: 4,
+          borderWidth: isActive ? 3 : 0,
+          borderColor: isActive ? '#6C63FF' : 'transparent',
+        }}
+      >
+        {displayUrl ? (
+          <Image
+            source={{ uri: displayUrl }}
+            style={{ width: 40, height: 40 }}
+            resizeMode="contain"
+            onError={() => {
+              if (!imageError) {
+                console.warn(`Failed to load logo for ${brandName}, trying fallback`);
+                setImageError(true);
+              }
+            }}
+          />
+        ) : (
+          <Ionicons name="footsteps" size={28} color="#6C63FF" />
+        )}
+      </View>
+    </Pressable>
   );
 }

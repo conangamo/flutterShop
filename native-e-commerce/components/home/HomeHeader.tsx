@@ -1,16 +1,91 @@
-import { Feather } from '@expo/vector-icons';
-import { Image, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { Alert, Image, TextInput, TouchableOpacity, View, ActionSheetIOS, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
 import { Logo } from '../Logo';
 
 type Props = {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   onSubmitSearch?: () => void;
+  onVisualSearch?: (imageUri: string) => void;
 };
 
-export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Props) {
+export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onVisualSearch }: Props) {
   const insets = useSafeAreaInsets();
+  
+  const handleVisualSearch = async () => {
+    // Request permissions first
+    const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+    const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    // Show options to user
+    const showOptions = () => {
+      if (Platform.OS === 'ios') {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: ['Hủy', 'Chụp ảnh', 'Chọn từ thư viện'],
+            cancelButtonIndex: 0,
+          },
+          async (buttonIndex) => {
+            if (buttonIndex === 1) {
+              await launchCamera();
+            } else if (buttonIndex === 2) {
+              await launchLibrary();
+            }
+          }
+        );
+      } else {
+        Alert.alert(
+          'Tìm kiếm bằng hình ảnh',
+          'Chọn nguồn hình ảnh',
+          [
+            { text: 'Hủy', style: 'cancel' },
+            { text: 'Chụp ảnh', onPress: launchCamera },
+            { text: 'Chọn từ thư viện', onPress: launchLibrary },
+          ]
+        );
+      }
+    };
+
+    const launchCamera = async () => {
+      if (cameraStatus !== 'granted') {
+        Alert.alert('Quyền truy cập', 'Cần quyền truy cập camera để chụp ảnh.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && onVisualSearch) {
+        onVisualSearch(result.assets[0].uri);
+      }
+    };
+
+    const launchLibrary = async () => {
+      if (libraryStatus !== 'granted') {
+        Alert.alert('Quyền truy cập', 'Cần quyền truy cập thư viện ảnh để chọn hình.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && onVisualSearch) {
+        onVisualSearch(result.assets[0].uri);
+      }
+    };
+
+    showOptions();
+  };
   
   return (
     <View style={{ paddingTop: insets.top + 10 }}>
@@ -46,12 +121,13 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Prop
           shadowOpacity: 0.2,
           shadowRadius: 12,
           elevation: 4,
+          gap: 8,
         }}
       >
         <Feather name="search" size={20} color="#8888A0" />
         <TextInput
           style={{ 
-            marginLeft: 12, 
+            marginLeft: 4, 
             flex: 1, 
             fontSize: 15, 
             color: '#F0F0F5',
@@ -64,6 +140,24 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch }: Prop
           onSubmitEditing={onSubmitSearch}
           returnKeyType="search"
         />
+        
+        {/* Camera Icon for Visual Search */}
+        <TouchableOpacity 
+          activeOpacity={0.7} 
+          onPress={handleVisualSearch}
+          style={{ 
+            height: 32, 
+            width: 32, 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            borderRadius: 8,
+            backgroundColor: 'rgba(255, 101, 132, 0.1)',
+          }}
+        >
+          <Ionicons name="camera-outline" size={18} color="#FF6584" />
+        </TouchableOpacity>
+        
+        {/* Microphone Icon for Voice Search */}
         <TouchableOpacity 
           activeOpacity={0.7} 
           style={{ 

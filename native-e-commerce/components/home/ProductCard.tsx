@@ -8,7 +8,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
-import { formatCurrency } from '~/lib/utils/formatters';
+import { formatCurrency, resolveImageUrl } from '~/lib/utils/formatters';
+import { API_BASE_URL } from '~/lib/config/env';
 import type { ProductSummary } from '~/lib/types/products';
 
 type Props = {
@@ -18,7 +19,10 @@ type Props = {
 
 function ProductCardBase({ product, cardWidth }: Props) {
   const router = useRouter();
-  const bestStock = product.variants.reduce((max, v) => Math.max(max, v.stock), 0);
+  const bestStock = (product.variants || []).reduce((max, v) => Math.max(max, v.stock || 0), 0);
+  
+  // Resolve the image URL properly
+  const imageUrl = resolveImageUrl(product.image, API_BASE_URL);
   
   // --- Press animation for premium interaction feedback ---
   const scaleValue = useSharedValue(1);
@@ -39,7 +43,7 @@ function ProductCardBase({ product, cardWidth }: Props) {
         {/* === PRODUCT IMAGE SECTION === */}
         <View className="w-full aspect-[4/3] bg-[#0A0A0F] overflow-hidden rounded-b-2xl">
           <Image
-            source={{ uri: product.image }}
+            source={{ uri: imageUrl }}
             className="w-full h-full"
             resizeMode="cover"
           />
@@ -68,35 +72,35 @@ function ProductCardBase({ product, cardWidth }: Props) {
         </View>
         
         {/* === PRODUCT INFO SECTION === */}
-        <View className="p-3 flex-col flex-1">
-          {/* Product Title */}
+        <View className="p-3 flex-col flex-1" style={{ minHeight: 100 }}>
+          {/* Product Title - BULLETPROOF with fallback */}
           <Text
             numberOfLines={1}
             className="text-[#F0F0F5] text-[15px] font-bold mb-1 leading-tight"
           >
-            {product.name}
+            {product.name || 'Giày Thể Thao Cao Cấp'}
           </Text>
           
-          {/* Product Description */}
+          {/* Product Description - BULLETPROOF with fallback */}
           <Text
             numberOfLines={1}
             className="text-[#8888A0] text-[12px] mb-2"
           >
-            {product.description}
+            {product.description || 'Sản phẩm chất lượng cao'}
           </Text>
           
           {/* Price & Rating - Bottom Aligned */}
           <View className="mt-auto">
-            {/* Price */}
+            {/* Price - BULLETPROOF with fallback */}
             <Text className="text-[#6C63FF] text-[16px] font-bold mb-1">
-              {formatCurrency(product.price)}
+              {product.price ? formatCurrency(product.price) : 'Đang cập nhật'}
             </Text>
             
             {/* Rating Row - Minimalist Shopee Style */}
             <View className="flex-row items-center gap-1">
               <Ionicons name="star" size={12} color="#FFD700" />
               <Text className="text-[#8888A0] text-[11px] font-medium">
-                {product.rating.toFixed(1)} ({product.reviews})
+                {product.rating ? product.rating.toFixed(1) : '0.0'} ({product.reviews || 0})
               </Text>
             </View>
           </View>
