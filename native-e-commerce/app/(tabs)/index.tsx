@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { FlatList, ScrollView, Text, TouchableOpacity, View, Pressable, Alert, Image } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -59,6 +60,7 @@ function getBrandIcon(brandName: string | null | undefined): string {
 export default function HomeScreen() {
   const locale = getAppLocale();
   const L = strings(locale);
+  const isFocused = useIsFocused();
 
   const [homeCategories, setHomeCategories] = useState<Category[]>([]);
   const [homeProducts, setHomeProducts] = useState<ProductSummary[]>([]);
@@ -194,7 +196,7 @@ export default function HomeScreen() {
     }
 
     void loadPage(page);
-  }, [page, filterKey, loadPage, visualSearchActive]);
+  }, [page, filterKey, loadPage, visualSearchActive, isFocused]);
 
   const totalPages =
     totalProducts > 0 ? Math.max(1, Math.ceil(totalProducts / CATALOG_PAGE_SIZE)) : 1;
@@ -590,8 +592,9 @@ export default function HomeScreen() {
                     scrollEnabled={false}
                     showsVerticalScrollIndicator={false}
                     extraData={displayedProducts}
-                    initialNumToRender={10}
-                    windowSize={5}
+                    initialNumToRender={24}
+                    maxToRenderPerBatch={24}
+                    windowSize={11}
                     removeClippedSubviews={false}
                   />
                 </View>
