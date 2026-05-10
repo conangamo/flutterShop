@@ -6,6 +6,7 @@ export type PlaceOrderPayload = {
   items: { productId: string; variantId: string | null; quantity: number }[];
   shippingAddressId: string;
   paymentMethod: string;
+  paymentMethodType: 'CREDIT_CARD' | 'COD' | 'E_WALLET';
   shippingFee?: number;
   discountTotal?: number;
   note?: string;
@@ -31,6 +32,7 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<OrderDetai
     })),
     shippingAddressId: payload.shippingAddressId,
     paymentMethod: payload.paymentMethod,
+    paymentMethodType: payload.paymentMethodType,
     note: payload.note,
     promoCode: payload.promoCode,
   });

@@ -82,6 +82,7 @@ order_timeline_status_code_pg = ENUM(
     create_type=False,
 )
 user_role_pg = ENUM("user", "staff", "admin", name="user_role", create_type=False)
+payment_method_type_pg = ENUM("CREDIT_CARD", "COD", "E_WALLET", name="payment_method_type", create_type=False)
 
 
 class Store(Base):
@@ -295,6 +296,7 @@ class Order(Base):
     total = Column(Numeric(14, 2), nullable=False)
     currency = Column(CHAR(3), nullable=False, server_default="VND")
     payment_method_code = Column(Text, nullable=False)
+    payment_method_type = Column(payment_method_type_pg, nullable=False)
     payment_status = Column(payment_status_pg, nullable=False, server_default="unpaid")
     ship_name = Column(Text, nullable=False)
     ship_phone = Column(Text, nullable=False)

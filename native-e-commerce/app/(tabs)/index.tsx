@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { FlatList, ScrollView, Text, TouchableOpacity, View, Pressable, Alert, Image } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -34,51 +34,26 @@ const DEFAULT_FILTER: FilterSheetState = {
   sort: 'newest',
 };
 
-// Brand logo mapping - maps brand names from BE to their logos
-// Using reliable PNG URLs that work consistently
-const BRAND_LOGO_MAP: Record<string, string> = {
-  'Nike': 'https://pngimg.com/uploads/nike/nike_PNG11.png',
-  'Adidas': 'https://pngimg.com/uploads/adidas/adidas_PNG8.png',
-  'Puma': 'https://purepng.com/public/uploads/large/purepng.com-puma-logopumabrand-logoiconssymbols-puma-681522783020s3ofl.png',
-  'Reebok': 'https://pngimg.com/uploads/reebok/reebok_PNG12.png',
-  'Converse': 'https://pngimg.com/uploads/converse/converse_PNG26.png',
-  'Vans': 'https://pngimg.com/uploads/vans/vans_PNG6.png',
-  'New Balance': 'https://logos-world.net/wp-content/uploads/2020/09/New-Balance-Logo.png',
-  'Asics': 'https://logos-world.net/wp-content/uploads/2020/09/ASICS-Logo.png',
-  'Under Armour': 'https://logos-world.net/wp-content/uploads/2020/09/Under-Armour-Logo.png',
-  'Skechers': 'https://logos-world.net/wp-content/uploads/2020/11/Skechers-Logo.png',
-  'Fila': 'https://logos-world.net/wp-content/uploads/2020/09/Fila-Logo.png',
-  'Jordan': 'https://logos-world.net/wp-content/uploads/2020/09/Jordan-Logo.png',
-};
-
-// Helper function to get brand logo URL with fuzzy matching
-function getBrandLogoUrl(brandName: string | null | undefined): string | null {
-  if (!brandName) return null;
+// Helper function to get brand icon from MaterialCommunityIcons
+// This avoids all external image loading issues on Android
+function getBrandIcon(brandName: string | null | undefined): string {
+  if (!brandName) return 'shoe-sneaker';
   
   const normalized = brandName.toLowerCase().trim();
   
-  // Check for exact match first (case-insensitive)
-  for (const [key, url] of Object.entries(BRAND_LOGO_MAP)) {
-    if (key.toLowerCase() === normalized) {
-      return url;
-    }
-  }
+  // Map brand names to MaterialCommunityIcons icon names
+  if (normalized.includes('nike')) return 'nike';
+  if (normalized.includes('adidas')) return 'shoe-sneaker';
+  if (normalized.includes('puma')) return 'shoe-sneaker';
+  if (normalized.includes('reebok')) return 'shoe-sneaker';
+  if (normalized.includes('converse')) return 'shoe-sneaker';
+  if (normalized.includes('vans')) return 'shoe-sneaker';
+  if (normalized.includes('new balance')) return 'shoe-sneaker';
+  if (normalized.includes('asics')) return 'shoe-sneaker';
+  if (normalized.includes('fila')) return 'shoe-sneaker';
+  if (normalized.includes('jordan')) return 'basketball';
   
-  // Check for partial match (contains)
-  if (normalized.includes('nike')) return BRAND_LOGO_MAP['Nike'];
-  if (normalized.includes('adidas')) return BRAND_LOGO_MAP['Adidas'];
-  if (normalized.includes('puma')) return BRAND_LOGO_MAP['Puma'];
-  if (normalized.includes('reebok')) return BRAND_LOGO_MAP['Reebok'];
-  if (normalized.includes('converse')) return BRAND_LOGO_MAP['Converse'];
-  if (normalized.includes('vans')) return BRAND_LOGO_MAP['Vans'];
-  if (normalized.includes('new balance')) return BRAND_LOGO_MAP['New Balance'];
-  if (normalized.includes('asics')) return BRAND_LOGO_MAP['Asics'];
-  if (normalized.includes('under armour')) return BRAND_LOGO_MAP['Under Armour'];
-  if (normalized.includes('skechers')) return BRAND_LOGO_MAP['Skechers'];
-  if (normalized.includes('fila')) return BRAND_LOGO_MAP['Fila'];
-  if (normalized.includes('jordan')) return BRAND_LOGO_MAP['Jordan'];
-  
-  return null;
+  return 'shoe-sneaker';
 }
 
 export default function HomeScreen() {
@@ -146,23 +121,18 @@ export default function HomeScreen() {
     [activeCategory, activeSearch, filterState]
   );
 
-  // Extract unique brands from products and filter by activeBrand
-  const uniqueBrands = useMemo(() => {
-    if (!homeProducts || !Array.isArray(homeProducts)) return [];
-    const brandSet = new Set<string>();
-    homeProducts.forEach(p => {
-      if (p?.brand && p.brand.trim()) {
-        brandSet.add(p.brand.trim());
-      }
-    });
-    return Array.from(brandSet).sort();
-  }, [homeProducts]);
+  // Hardcoded brand list
+  const uniqueBrands = ['Adidas', 'Nike', 'Puma', 'Reebok', 'Converse', 'Vans'];
 
-  // Client-side brand filtering (since BE doesn't have brand filter endpoint)
+  // Client-side brand filtering by checking if product name contains the brand
   const displayedProducts = useMemo(() => {
     if (!homeProducts || !Array.isArray(homeProducts)) return [];
     if (!activeBrand) return homeProducts;
-    return homeProducts.filter(p => p?.brand?.trim() === activeBrand);
+    const normalizedActiveBrand = activeBrand.toLowerCase().trim();
+    return homeProducts.filter(p => {
+      const productName = (p?.name ?? '').toLowerCase().trim();
+      return productName.includes(normalizedActiveBrand);
+    });
   }, [homeProducts, activeBrand]);
 
   const filterKey = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
@@ -351,9 +321,24 @@ export default function HomeScreen() {
                 shadowOpacity: 0.35,
                 shadowRadius: 20,
                 elevation: 12,
-                overflow: 'visible',
+                overflow: 'hidden',
               }}
             >
+              {/* Faded Sneaker Background Image */}
+              <Image
+                source={{ uri: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=500&q=60' }}
+                style={{
+                  position: 'absolute',
+                  right: -50,
+                  bottom: -20,
+                  width: '100%',
+                  height: '140%',
+                  opacity: 0.08,
+                  zIndex: 1,
+                }}
+                resizeMode="contain"
+              />
+
               {/* Left Side - Text Content */}
               <View style={{ flex: 1, zIndex: 2 }}>
                 {/* Badge label */}
@@ -409,46 +394,7 @@ export default function HomeScreen() {
                   Khám phá ngay những mẫu giày hot nhất.
                 </Text>
 
-                {/* Mua Ngay button */}
-                <Pressable
-                  onPress={() => {
-                    Alert.alert('Thông báo', 'Chức năng mua sắm đang được phát triển!', [
-                      { text: 'OK', style: 'default' }
-                    ]);
-                  }}
-                  style={{
-                    alignSelf: 'flex-start',
-                    backgroundColor: '#6C63FF', // accent
-                    borderRadius: 24,
-                    paddingHorizontal: 22,
-                    paddingVertical: 12,
-                    shadowColor: '#6C63FF',
-                    shadowOffset: { width: 0, height: 6 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 12,
-                    elevation: 6,
-                  }}
-                >
-                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '800', letterSpacing: 0.5 }}>
-                    Mua Ngay
-                  </Text>
-                </Pressable>
               </View>
-
-              {/* Right Side - Dramatic Sneaker Image with 3D Pop-out Effect */}
-              <Image
-                source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Air_Jordan_1_retro_high_OG.png' }}
-                style={{
-                  position: 'absolute',
-                  right: -30,
-                  top: -40,
-                  width: 180,
-                  height: 180,
-                  transform: [{ rotate: '-15deg' }],
-                  zIndex: 1,
-                }}
-                resizeMode="contain"
-              />
             </View>
           </Animated.View>
 
@@ -466,13 +412,13 @@ export default function HomeScreen() {
             >
               {uniqueBrands.map((brandName) => {
                 const isActive = activeBrand === brandName;
-                const logoUrl = getBrandLogoUrl(brandName);
+                const iconName = getBrandIcon(brandName);
                 
                 return (
                   <BrandLogoButton
                     key={brandName}
                     brandName={brandName}
-                    logoUrl={logoUrl}
+                    iconName={iconName}
                     isActive={isActive}
                     onPress={() => setActiveBrand(isActive ? null : brandName)}
                   />
@@ -636,13 +582,17 @@ export default function HomeScreen() {
                 >
                   <FlatList
                     key={`grid-2`}
-                    data={displayedProducts}
+                    data={displayedProducts ?? []}
                     renderItem={({ item }) => <ProductCard product={item} />}
                     keyExtractor={(p, index) => `${p.id}-${index}`}
                     numColumns={2}
                     columnWrapperStyle={{ gap: 12, marginBottom: 16 }}
                     scrollEnabled={false}
                     showsVerticalScrollIndicator={false}
+                    extraData={displayedProducts}
+                    initialNumToRender={10}
+                    windowSize={5}
+                    removeClippedSubviews={false}
                   />
                 </View>
 
@@ -823,27 +773,18 @@ function ChipBadge({ label, onClear }: { label: string; onClear: () => void }) {
   );
 }
 
-// Brand Logo Button Component with Fallback
+// Brand Logo Button Component - Clean typography only, no images
 function BrandLogoButton({ 
   brandName, 
-  logoUrl, 
+  iconName, 
   isActive, 
   onPress 
 }: { 
   brandName: string; 
-  logoUrl: string | null; 
+  iconName: string; 
   isActive: boolean; 
   onPress: () => void;
 }) {
-  const [imageError, setImageError] = useState(false);
-  
-  // Fallback URL for Puma specifically
-  const fallbackUrl = brandName === 'Puma' 
-    ? 'https://purepng.com/public/uploads/large/purepng.com-puma-logopumabrand-logoiconssymbols-puma-681522783020s3ofl.png'
-    : null;
-  
-  const displayUrl = imageError && fallbackUrl ? fallbackUrl : logoUrl;
-  
   return (
     <Pressable
       onPress={onPress}
@@ -867,22 +808,31 @@ function BrandLogoButton({
           borderColor: isActive ? '#6C63FF' : 'transparent',
         }}
       >
-        {displayUrl ? (
-          <Image
-            source={{ uri: displayUrl }}
-            style={{ width: 40, height: 40 }}
-            resizeMode="contain"
-            onError={() => {
-              if (!imageError) {
-                console.warn(`Failed to load logo for ${brandName}, trying fallback`);
-                setImageError(true);
-              }
-            }}
-          />
-        ) : (
-          <Ionicons name="footsteps" size={28} color="#6C63FF" />
-        )}
+        <Text
+          style={{
+            fontSize: 10,
+            fontWeight: '900',
+            color: '#000000',
+            textTransform: 'uppercase',
+            textAlign: 'center',
+          }}
+        >
+          {brandName}
+        </Text>
       </View>
+      <Text
+        style={{
+          marginTop: 6,
+          fontSize: 11,
+          fontWeight: '600',
+          color: isActive ? '#6C63FF' : '#8888A0',
+          textAlign: 'center',
+          maxWidth: 80,
+        }}
+        numberOfLines={1}
+      >
+        {brandName}
+      </Text>
     </Pressable>
   );
 }

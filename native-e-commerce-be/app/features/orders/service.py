@@ -138,6 +138,7 @@ def get_order_detail(db: Session, store_id: int, user_id: str | None, order_id: 
         },
         "paymentMethod": pm_label,
         "paymentMethodCode": o.payment_method_code,
+        "paymentMethodType": str(o.payment_method_type) if o.payment_method_type else None,
         "tracking": o.tracking_number or "",
         "estimatedDelivery": estimated,
         "timeline": [
@@ -345,6 +346,7 @@ def create_order(db: Session, store_id: int, user_id: str, payload: OrderCreateI
             total=total,
             currency="VND",
             payment_method_code=payload.payment_method_code,
+            payment_method_type=payload.payment_method_type.value,
             payment_status="unpaid",
             ship_name=addr.name,
             ship_phone=addr.phone,

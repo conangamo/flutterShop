@@ -2,6 +2,15 @@
 
 Nếu backend báo lỗi kiểu **`column users.is_active does not exist`** hoặc **`role` / `revoked_access_tokens`**, database đang là **bản cũ** so với `init_database.sql` hiện tại.
 
+## Migration List
+
+1. `0001_baseline.sql` — Initial schema
+2. `0002_auth_user_status_revocations.sql` — `is_active`, `is_staff`, `revoked_access_tokens`
+3. `0003_user_role_enum.sql` — enum `user_role`, cột `role`, bỏ `is_staff`
+4. `0004_phase1_integrity_and_shoes.sql` — CHECK constraints (oversell guard), index trạng thái đơn, seed thêm sản phẩm giày + tài khoản admin demo `demo.shoes@gmail.com`
+5. `0005_admin_mvp_tables.sql` — Admin MVP tables
+6. **`0006_payment_method_enum.sql`** — Payment method type enum (CREDIT_CARD, COD, E_WALLET)
+
 ## Cách 1 — Một file (khuyến nghị)
 
 Chạy toàn bộ:
@@ -20,6 +29,20 @@ Trên PowerShell (Windows), ví dụ DB tên `style_up`:
 
 ```powershell
 Get-Content ..\database\migrations\apply_auth_migrations.sql -Raw | docker compose exec -T db psql -U postgres -d style_up
+```
+
+## Applying Migration 0006 (Payment Method Enum)
+
+To apply the new payment method type enum migration:
+
+```bash
+psql "$DATABASE_URL" -f database/migrations/0006_payment_method_enum.sql
+```
+
+Or with Docker Compose:
+
+```powershell
+Get-Content database\migrations\0006_payment_method_enum.sql -Raw | docker compose -f native-e-commerce-be\docker-compose.yml exec -T db psql -U postgres -d style_up
 ```
 
 ## Cách 2 — Từng bước

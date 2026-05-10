@@ -21,18 +21,21 @@ const paymentMethods = [
     title: 'Thẻ tín dụng / Ghi nợ',
     subtitle: 'Visa, Mastercard, JCB',
     icon: 'card-outline' as const,
+    type: 'CREDIT_CARD' as const,
   },
   {
     id: 'cod',
     title: 'Thanh toán khi nhận hàng',
     subtitle: 'Trả tiền khi nhận hàng',
     icon: 'cash-outline' as const,
+    type: 'COD' as const,
   },
   {
     id: 'wallet',
     title: 'Ví điện tử',
     subtitle: 'Momo, ZaloPay, VNPay',
     icon: 'wallet-outline' as const,
+    type: 'E_WALLET' as const,
   },
 ];
 
@@ -141,6 +144,7 @@ export default function CheckoutScreen() {
         })),
         shippingAddressId: selectedAddress!.id,
         paymentMethod: selectedPaymentMethodId,
+        paymentMethodType: selectedPaymentMethod!.type,
         promoCode: promoCode ?? undefined,
       });
       clearCart();
@@ -150,6 +154,8 @@ export default function CheckoutScreen() {
         params: {
           orderId: created.id,
           promoCode: promoCode ?? undefined,
+          paymentMethodType: selectedPaymentMethod!.type,
+          orderTotal: total.toString(),
         },
       });
     } catch (e) {

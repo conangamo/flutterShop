@@ -54,6 +54,10 @@ CREATE TYPE user_role AS ENUM (
   'user', 'staff', 'admin'
 );
 
+CREATE TYPE payment_method_type AS ENUM (
+  'CREDIT_CARD', 'COD', 'E_WALLET'
+);
+
 -- -----------------------------------------------------------------------------
 -- Core tables
 -- -----------------------------------------------------------------------------
@@ -277,6 +281,7 @@ CREATE TABLE orders (
   total                  NUMERIC(14, 2) NOT NULL,
   currency               CHAR(3) NOT NULL DEFAULT 'VND',
   payment_method_code    TEXT NOT NULL,
+  payment_method_type    payment_method_type NOT NULL,
   payment_status         payment_status NOT NULL DEFAULT 'unpaid',
   ship_name              TEXT NOT NULL,
   ship_phone             TEXT NOT NULL,
@@ -300,6 +305,7 @@ CREATE TABLE orders (
 CREATE INDEX idx_orders_store_user_placed ON orders (store_id, user_id, placed_at DESC);
 CREATE INDEX idx_orders_store_status ON orders (store_id, status);
 CREATE INDEX idx_orders_store_status_placed ON orders (store_id, status, placed_at DESC);
+CREATE INDEX idx_orders_payment_method_type ON orders (payment_method_type);
 
 CREATE TABLE order_items (
   id                      TEXT PRIMARY KEY,

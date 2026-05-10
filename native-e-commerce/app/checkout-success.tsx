@@ -1,13 +1,15 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, Image } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 
 export default function CheckoutSuccess() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ orderId?: string; promoCode?: string }>();
+  const params = useLocalSearchParams<{ orderId?: string; promoCode?: string; paymentMethodType?: string; orderTotal?: string }>();
   const orderId = params.orderId ?? '';
   const promoCode = params.promoCode ?? '';
+  const paymentMethodType = params.paymentMethodType ?? '';
+  const orderTotal = params.orderTotal ?? '0';
   const checkoutCopy = {
     successTitle: 'Order Placed!',
     successMessage: 'Your order was placed successfully.',
@@ -76,6 +78,20 @@ export default function CheckoutSuccess() {
                       Promo applied
                     </Text>
                     <Text className="mt-1 text-[13px] font-semibold text-semantic-success">{promoCode}</Text>
+                  </View>
+                ) : null}
+
+                {/* QR Code for E_WALLET Payment */}
+                {paymentMethodType === 'E_WALLET' ? (
+                  <View className="mb-4 items-center">
+                    <Image
+                      source={{ uri: `https://img.vietqr.io/image/BIDV-5321170903-compact2.png?amount=${orderTotal}&addInfo=${orderId}&accountName=NGUYEN PHUONG THAO` }}
+                      style={{ width: 250, height: 250, marginVertical: 12 }}
+                      resizeMode="contain"
+                    />
+                    <Text className="text-center text-[14px] font-bold text-text-primary mt-2">
+                      Vui lòng quét mã QR trên để hoàn tất thanh toán
+                    </Text>
                   </View>
                 ) : null}
 
