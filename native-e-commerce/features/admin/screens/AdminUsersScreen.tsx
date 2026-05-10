@@ -1,9 +1,10 @@
-import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
 import { AppInput } from '~/components/ui/AppInput';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
+import { AdminScreenShell } from '~/features/admin/ui/AdminChrome';
+import { adminTheme as A } from '~/features/admin/ui/theme';
 import { adminListUsers, adminSetUserRole, adminSetUserStatus, type AdminUserRow } from '~/lib/api/admin';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
@@ -22,20 +23,23 @@ export default function AdminUsersScreen() {
     action: () => Promise<void>;
   } | null>(null);
 
-  const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
-    if (mode === 'initial') setLoading(true);
-    else setRefreshing(true);
-    setError(null);
-    try {
-      const rows = await adminListUsers({ q: q || undefined, limit: 100 });
-      setUsers(rows);
-    } catch (e) {
-      setError(e instanceof ApiError ? resolveApiError(e, locale) : L.errors.homeLoadFailed);
-    } finally {
-      if (mode === 'initial') setLoading(false);
-      else setRefreshing(false);
-    }
-  }, [q, locale, L.errors.homeLoadFailed]);
+  const load = useCallback(
+    async (mode: 'initial' | 'refresh' = 'initial') => {
+      if (mode === 'initial') setLoading(true);
+      else setRefreshing(true);
+      setError(null);
+      try {
+        const rows = await adminListUsers({ q: q || undefined, limit: 100 });
+        setUsers(rows);
+      } catch (e) {
+        setError(e instanceof ApiError ? resolveApiError(e, locale) : L.errors.homeLoadFailed);
+      } finally {
+        if (mode === 'initial') setLoading(false);
+        else setRefreshing(false);
+      }
+    },
+    [q, locale, L.errors.homeLoadFailed],
+  );
 
   useEffect(() => {
     void load('initial');
@@ -65,62 +69,61 @@ export default function AdminUsersScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView
-        className="flex-1 bg-[#F4F4F4]"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-        <View className="px-4 pb-10 pt-5">
-          <View className="mb-3">
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Người dùng</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              Tìm kiếm nhanh, đổi role và khoá/mở tài khoản an toàn.
-            </Text>
-          </View>
-          <AppInput
-            label="Tìm theo tên hoặc email"
-            value={q}
-            onChangeText={setQ}
-            placeholder="Nhập từ khoá..."
-            onSubmitEditing={() => void load('refresh')}
-          />
-          {loading ? (
-            <LoadingBlock label="Đang tải danh sách người dùng..." />
-          ) : error ? (
-            <ErrorBlock message={error} onRetry={() => void load('refresh')} />
-          ) : users.length === 0 ? (
-            <EmptyBlock title="Không có user" hint="Chưa có người dùng phù hợp." />
-          ) : (
-            <View className="mt-3 gap-3">
-              {users.map((u) => (
-                <View key={u.id} className="rounded-[20px] bg-white p-4 shadow-sm">
-                  <Text className="text-[15px] font-semibold text-[#1F2937]" numberOfLines={1}>
-                    {u.name}
-                  </Text>
-                  <Text className="text-[12px] text-[#6B7280]" numberOfLines={1}>
-                    {u.email}
-                  </Text>
-                  <View className="mt-2 flex-row items-center justify-between">
-                    <Text className="text-[12px] text-[#6B7280]">
-                      role: <Text className="font-semibold text-[#1F2937]">{u.role}</Text> ·{' '}
-                      {u.is_active ? 'active' : 'inactive'}
+      <AdminScreenShell title="Người dùng" subtitle="Tìm kiếm · role · khóa tài khoản">
+        <ScrollView
+          className="flex-1"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} tintColor={A.accent} />
+          }>
+          <View className="px-4 pb-10 pt-2">
+            <AppInput
+              label="Tìm theo tên hoặc email"
+              value={q}
+              onChangeText={setQ}
+              placeholder="Nhập từ khoá..."
+              onSubmitEditing={() => void load('refresh')}
+            />
+            {loading ? (
+              <LoadingBlock label="Đang tải danh sách người dùng..." />
+            ) : error ? (
+              <ErrorBlock message={error} onRetry={() => void load('refresh')} />
+            ) : users.length === 0 ? (
+              <EmptyBlock title="Không có user" hint="Chưa có người dùng phù hợp." />
+            ) : (
+              <View className="mt-3 gap-3">
+                {users.map((u) => (
+                  <View key={u.id} className="rounded-[20px] border border-[#2A2D42] bg-[#12131C] p-4">
+                    <Text className="text-[15px] font-semibold text-[#F0F0F5]" numberOfLines={1}>
+                      {u.name}
                     </Text>
-                  </View>
-                  <View className="mt-3 flex-row flex-wrap gap-2">
-                    <Pressable onPress={() => cycleRole(u)} className="rounded-full bg-[#FFF4ED] px-3 py-2">
-                      <Text className="text-[12px] font-semibold text-[#F97316]">Đổi role</Text>
-                    </Pressable>
-                    <Pressable onPress={() => toggleActive(u)} className="rounded-full bg-[#F3F4F6] px-3 py-2">
-                      <Text className="text-[12px] font-semibold text-[#374151]">
-                        {u.is_active ? 'Khoá' : 'Mở'}
+                    <Text className="text-[12px] text-[#9CA3AF]" numberOfLines={1}>
+                      {u.email}
+                    </Text>
+                    <View className="mt-2 flex-row items-center justify-between">
+                      <Text className="text-[12px] text-[#9CA3AF]">
+                        role: <Text className="font-semibold text-[#F0F0F5]">{u.role}</Text> ·{' '}
+                        {u.is_active ? 'active' : 'inactive'}
                       </Text>
-                    </Pressable>
+                    </View>
+                    <View className="mt-3 flex-row flex-wrap gap-2">
+                      <Pressable
+                        onPress={() => cycleRole(u)}
+                        className="rounded-full border border-[#6C63FF] bg-[rgba(108,99,255,0.14)] px-3 py-2">
+                        <Text className="text-[12px] font-semibold text-[#6C63FF]">Đổi role</Text>
+                      </Pressable>
+                      <Pressable onPress={() => toggleActive(u)} className="rounded-full bg-[#1C1D2E] px-3 py-2">
+                        <Text className="text-[12px] font-semibold text-[#D4D4DE]">
+                          {u.is_active ? 'Khoá' : 'Mở'}
+                        </Text>
+                      </Pressable>
+                    </View>
                   </View>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-      </ScrollView>
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </AdminScreenShell>
       <ConfirmModal
         visible={confirm != null}
         title={confirm?.title ?? ''}
@@ -153,14 +156,14 @@ function ConfirmModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-black/40 px-5">
-        <View className="max-h-[80%] w-full max-w-[440px] rounded-[22px] bg-white p-4">
-          <Text className="text-[16px] font-semibold text-[#111827]">{title}</Text>
+        <View className="max-h-[80%] w-full max-w-[440px] rounded-[22px] border border-[#2A2D42] bg-[#12131C] p-4">
+          <Text className="text-[16px] font-semibold text-[#F0F0F5]">{title}</Text>
           <ScrollView className="mt-2 max-h-[220px]" showsVerticalScrollIndicator={false}>
-            <Text className="text-[13px] text-[#6B7280]">{body}</Text>
+            <Text className="text-[13px] text-[#9CA3AF]">{body}</Text>
           </ScrollView>
           <View className="mt-4 flex-row justify-end gap-2">
-            <Pressable onPress={onClose} className="rounded-full bg-[#F3F4F6] px-4 py-2">
-              <Text className="font-semibold text-[#374151]">Huỷ</Text>
+            <Pressable onPress={onClose} className="rounded-full bg-[#1C1D2E] px-4 py-2">
+              <Text className="font-semibold text-[#D4D4DE]">Huỷ</Text>
             </Pressable>
             <Pressable
               disabled={saving}

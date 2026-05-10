@@ -1,9 +1,10 @@
-import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { AppCard } from '~/components/ui/AppCard';
 import { EmptyBlock, LoadingBlock } from '~/components/ui/StateBlocks';
+import { AdminScreenShell } from '~/features/admin/ui/AdminChrome';
+import { adminTheme as A } from '~/features/admin/ui/theme';
 import {
   adminDashboardRevenue,
   adminDashboardSummary,
@@ -23,7 +24,9 @@ export default function AdminDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [revenueRows, setRevenueRows] = useState<{ day: string; revenue: number; orders: number }[]>([]);
-  const [topProducts, setTopProducts] = useState<{ productId: string; name: string; quantity: number; revenue: number }[]>([]);
+  const [topProducts, setTopProducts] = useState<
+    { productId: string; name: string; quantity: number; revenue: number }[]
+  >([]);
 
   const load = useCallback(async (mode: 'initial' | 'refresh' = 'initial') => {
     if (mode === 'initial') setLoading(true);
@@ -48,69 +51,64 @@ export default function AdminDashboardScreen() {
   }, [load]);
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
+    <AdminScreenShell title="Dashboard vận hành" subtitle="Doanh thu · đơn · top SKU · tồn kho">
       <ScrollView
-        className="flex-1 bg-[#F4F4F4]"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-        <View className="px-4 pb-10 pt-5">
-          <View className="mb-3">
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Dashboard vận hành</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              Theo dõi nhanh doanh thu, hiệu suất bán và tồn kho.
-            </Text>
-          </View>
-          {loading ? (
-            <LoadingBlock label="Đang tải báo cáo..." />
-          ) : !summary ? (
-            <EmptyBlock title="Không có dữ liệu" hint="Chưa thể tải dữ liệu dashboard." />
-          ) : (
-            <>
-              <View className="mb-3 flex-row flex-wrap gap-3">
-                <MetricCard label="Tổng đơn" value={String(summary.totalOrders)} />
-                <MetricCard label="Doanh thu" value={formatCurrency(summary.revenue)} />
-              </View>
-              <View className="mb-3 flex-row flex-wrap gap-3">
-                <MetricCard label="Sản phẩm active" value={String(summary.activeProducts)} />
-                <MetricCard label="Variant sắp hết" value={String(summary.lowStockVariants)} />
-              </View>
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.pad}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} tintColor={A.accent} />
+        }
+        showsVerticalScrollIndicator={false}>
+        {loading ? (
+          <LoadingBlock label="Đang tải báo cáo..." />
+        ) : !summary ? (
+          <EmptyBlock title="Không có dữ liệu" hint="Không thể tải dashboard." />
+        ) : (
+          <>
+            <View style={styles.metricRow}>
+              <MetricCard label="Tổng đơn" value={String(summary.totalOrders)} />
+              <MetricCard label="Doanh thu" value={formatCurrency(summary.revenue)} />
+            </View>
+            <View style={styles.metricRow}>
+              <MetricCard label="SKU đang bán" value={String(summary.activeProducts)} />
+              <MetricCard label="Variant sắp hết" value={String(summary.lowStockVariants)} />
+            </View>
 
-              <AppCard className="mb-3">
-                <Text className="text-[16px] font-semibold text-[#1F2937]">Doanh thu 7 ngày</Text>
-                <LineChart rows={revenueRows} />
-                <View className="mt-3 gap-2">
-                  {revenueRows.map((row) => (
-                    <View key={row.day} className="flex-row items-center justify-between gap-3">
-                      <Text className="flex-1 text-[13px] text-[#6B7280]">{row.day}</Text>
-                      <Text className="text-right text-[13px] font-semibold text-[#1F2937]">
-                        {formatCurrency(row.revenue)} · {row.orders} đơn
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </AppCard>
+            <AppCard className="mb-3">
+              <Text style={styles.cardTitle}>Doanh thu 7 ngày</Text>
+              <LineChart rows={revenueRows} />
+              <View className="mt-3 gap-2">
+                {revenueRows.map((row) => (
+                  <View key={row.day} className="flex-row items-center justify-between gap-3">
+                    <Text style={styles.rowMuted}>{row.day}</Text>
+                    <Text style={styles.rowStrong}>
+                      {formatCurrency(row.revenue)} · {row.orders} đơn
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </AppCard>
 
-              <AppCard>
-                <Text className="text-[16px] font-semibold text-[#1F2937]">Top sản phẩm</Text>
-                <BarChart rows={topProducts} />
-                <View className="mt-3 gap-2">
-                  {topProducts.map((row, idx) => (
-                    <View key={row.productId} className="flex-row items-center justify-between gap-3">
-                      <Text className="flex-1 text-[13px] text-[#1F2937]">
-                        {idx + 1}. {row.name}
-                      </Text>
-                      <Text className="text-right text-[12px] text-[#6B7280]">
-                        {row.quantity} · {formatCurrency(row.revenue)}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              </AppCard>
-            </>
-          )}
-        </View>
+            <AppCard>
+              <Text style={styles.cardTitle}>Top sản phẩm</Text>
+              <BarChart rows={topProducts} />
+              <View className="mt-3 gap-2">
+                {topProducts.map((row, idx) => (
+                  <View key={row.productId} className="flex-row items-center justify-between gap-3">
+                    <Text style={styles.rowName} numberOfLines={1}>
+                      {idx + 1}. {row.name}
+                    </Text>
+                    <Text style={styles.rowMuted}>
+                      {row.quantity} · {formatCurrency(row.revenue)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </AppCard>
+          </>
+        )}
       </ScrollView>
-    </>
+    </AdminScreenShell>
   );
 }
 
@@ -122,7 +120,7 @@ function LineChart({ rows }: { rows: { day: string; revenue: number; orders: num
     y: 100 - (r.revenue / max) * 100,
   }));
   return (
-    <View className="mt-3 h-28 rounded-[14px] bg-[#F8FAFC] p-2">
+    <View style={styles.chartBg}>
       {points.slice(0, -1).map((p, idx) => {
         const n = points[idx + 1];
         const dx = n.x - p.x;
@@ -138,7 +136,7 @@ function LineChart({ rows }: { rows: { day: string; revenue: number; orders: num
               top: `${p.y}%`,
               width: `${len}%`,
               height: 2,
-              backgroundColor: '#F97316',
+              backgroundColor: A.accent,
               transform: [{ rotate: `${angle}deg` }],
             }}
           />
@@ -147,8 +145,12 @@ function LineChart({ rows }: { rows: { day: string; revenue: number; orders: num
       {points.map((p, idx) => (
         <View
           key={`dot-${rows[idx]?.day ?? idx}`}
-          style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%` }}
-          className="h-2.5 w-2.5 -translate-x-1 -translate-y-1 rounded-full bg-[#F97316]"
+          style={{
+            position: 'absolute',
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+          }}
+          className="h-2.5 w-2.5 -translate-x-1 -translate-y-1 rounded-full bg-[#6C63FF]"
         />
       ))}
     </View>
@@ -163,16 +165,13 @@ function BarChart({
   if (!rows.length) return null;
   const max = Math.max(...rows.map((r) => r.revenue), 1);
   return (
-    <View className="mt-3 flex-row items-end gap-2 rounded-[14px] bg-[#F8FAFC] p-3">
+    <View style={styles.barWrap}>
       {rows.map((row) => {
         const h = Math.max(8, Math.round((row.revenue / max) * 90));
         return (
           <View key={row.productId} className="flex-1 items-center">
-            <View
-              style={{ height: h }}
-              className="w-full rounded-t-[8px] bg-[#F97316]"
-            />
-            <Text numberOfLines={1} className="mt-1 text-[10px] text-[#6B7280]">
+            <View style={{ height: h }} className="w-full rounded-t-[8px] bg-[#6C63FF]" />
+            <Text numberOfLines={1} style={styles.barLabel}>
               {row.name}
             </Text>
           </View>
@@ -184,9 +183,88 @@ function BarChart({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <View className="min-w-[47%] flex-1 rounded-[18px] bg-white p-3 shadow-sm">
-      <Text className="text-[11px] uppercase tracking-[1px] text-[#9CA3AF]">{label}</Text>
-      <Text className="mt-1 text-[16px] font-bold text-[#1F2937]">{value}</Text>
+    <View style={styles.metricCard}>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text style={styles.metricValue}>{value}</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  pad: {
+    paddingHorizontal: 16,
+    paddingBottom: 48,
+    paddingTop: 12,
+  },
+  metricRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  metricCard: {
+    flex: 1,
+    borderRadius: 18,
+    padding: 14,
+    backgroundColor: A.surfaceElevated,
+    borderWidth: 1,
+    borderColor: A.border,
+  },
+  metricLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: A.muted,
+    textTransform: 'uppercase',
+  },
+  metricValue: {
+    marginTop: 8,
+    fontSize: 17,
+    fontWeight: '800',
+    color: A.text,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: A.text,
+  },
+  rowMuted: {
+    flex: 1,
+    fontSize: 13,
+    color: A.muted,
+  },
+  rowStrong: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: A.text,
+    textAlign: 'right',
+  },
+  rowName: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: A.text,
+  },
+  chartBg: {
+    marginTop: 12,
+    height: 112,
+    borderRadius: 14,
+    backgroundColor: '#1C1C28',
+    padding: 8,
+    overflow: 'hidden',
+  },
+  barWrap: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    borderRadius: 14,
+    backgroundColor: '#1C1C28',
+    padding: 12,
+  },
+  barLabel: {
+    marginTop: 6,
+    fontSize: 10,
+    color: A.muted,
+    textAlign: 'center',
+  },
+});

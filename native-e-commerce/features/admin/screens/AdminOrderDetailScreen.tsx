@@ -1,16 +1,14 @@
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '~/components/Button';
 import { useToast } from '~/components/ToastProvider';
 import { AppInput } from '~/components/ui/AppInput';
 import { AppCard } from '~/components/ui/AppCard';
 import { LoadingBlock } from '~/components/ui/StateBlocks';
+import { AdminScreenShell } from '~/features/admin/ui/AdminChrome';
+import { adminTheme as A } from '~/features/admin/ui/theme';
 import { adminGetOrder, adminUpdateOrderStatus } from '~/lib/api/admin';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
@@ -94,75 +92,65 @@ export default function AdminOrderDetailScreen() {
 
   if (loading || !order) {
     return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View className="flex-1 bg-[#F4F4F4] px-4">
+      <AdminScreenShell title="Chi tiết đơn" subtitle={orderId ? `#${orderId.slice(0, 8)}…` : ''}>
+        <View style={{ flex: 1, paddingHorizontal: 16 }}>
           <LoadingBlock label="Đang tải chi tiết đơn hàng..." />
         </View>
-      </>
+      </AdminScreenShell>
     );
   }
 
   const next = NEXT_STATES[order.status];
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView className="flex-1 bg-[#F4F4F4]">
-        <AppCard className="m-4">
-          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Mã đơn</Text>
-          <Text className="mt-1 text-[18px] font-bold text-[#1F2937]">#{order.code}</Text>
-          <Text className="mt-1 text-[13px] text-[#6B7280]">{formatDate(order.date)}</Text>
-          <Text className="mt-2 text-[13px] text-[#6B7280]">
-            {order.shippingAddress.name} • {order.shippingAddress.phone}
+    <AdminScreenShell title={`Đơn #${order.code}`} subtitle={formatDate(order.date)}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.pad} showsVerticalScrollIndicator={false}>
+        <AppCard className="mb-3.5">
+          <Text style={styles.k}>Mã đơn</Text>
+          <Text style={styles.h1}>#{order.code}</Text>
+          <Text style={styles.p}>{formatDate(order.date)}</Text>
+          <Text style={[styles.p, { marginTop: 10 }]}>
+            {order.shippingAddress.name} · {order.shippingAddress.phone}
           </Text>
-          <Text className="text-[13px] text-[#6B7280]">
+          <Text style={styles.p}>
             {order.shippingAddress.address}, {order.shippingAddress.city}
           </Text>
 
-          <View className="mt-4 rounded-[16px] bg-[#F8FAFC] p-3">
-            <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">
-              Trạng thái hiện tại
-            </Text>
-            <Text className="mt-1 text-[16px] font-bold capitalize text-[#1F2937]">
-              {STATUS_LABEL[order.status]}
-            </Text>
+          <View style={styles.statusBox}>
+            <Text style={styles.k}>Trạng thái hiện tại</Text>
+            <Text style={styles.statusTxt}>{STATUS_LABEL[order.status]}</Text>
           </View>
         </AppCard>
 
-        <AppCard className="mx-4 mb-3">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Sản phẩm</Text>
-          <View className="mt-2 gap-2">
+        <AppCard className="mb-3.5">
+          <Text style={styles.section}>Sản phẩm</Text>
+          <View style={{ marginTop: 10, gap: 12 }}>
             {order.items.map((item) => (
               <View key={item.id} className="flex-row items-center gap-3">
                 <View className="flex-1">
-                  <Text className="text-[14px] font-semibold text-[#1F2937]" numberOfLines={2}>
+                  <Text style={styles.itemName} numberOfLines={2}>
                     {item.name}
                   </Text>
-                  <Text className="text-[12px] text-[#6B7280]">
+                  <Text style={styles.p}>
                     {item.size ? `Size ${item.size} · ` : ''}
-                    {item.color ?? ''} · x{item.quantity}
+                    {item.color ?? ''} · ×{item.quantity}
                   </Text>
                 </View>
-                <Text className="text-[13px] font-semibold text-[#1F2937]">
-                  {formatCurrency(item.price * item.quantity)}
-                </Text>
+                <Text style={styles.itemPrice}>{formatCurrency(item.price * item.quantity)}</Text>
               </View>
             ))}
           </View>
-          <View className="mt-3 flex-row items-center justify-between border-t border-[#F3F4F6] pt-3">
-            <Text className="text-[14px] text-[#6B7280]">Tổng</Text>
-            <Text className="text-[18px] font-bold text-[#1F2937]">
-              {formatCurrency(order.total)}
-            </Text>
+          <View className="mt-4 flex-row items-center justify-between border-t border-[#2A2A3A] pt-4">
+            <Text style={styles.p}>Tổng</Text>
+            <Text style={styles.total}>{formatCurrency(order.total)}</Text>
           </View>
         </AppCard>
 
-        <AppCard className="mx-4 mb-4">
-          <Text className="text-[16px] font-semibold text-[#1F2937]">Cập nhật trạng thái</Text>
+        <AppCard className="mb-8">
+          <Text style={styles.section}>Cập nhật trạng thái</Text>
 
           <AppInput
-            label="Tracking number"
+            label="Mã vận đơn"
             value={tracking}
             onChangeText={setTracking}
             placeholder="VD: GHN-2026-99887"
@@ -173,37 +161,94 @@ export default function AdminOrderDetailScreen() {
             label="Ghi chú"
             value={note}
             onChangeText={setNote}
-            placeholder="VD: Đã đóng gói và giao GHN"
+            placeholder="VD: Đã giao GHN"
             className="mt-2"
           />
 
           {next.length === 0 ? (
-            <Text className="mt-4 text-[13px] text-[#6B7280]">
-              Đơn đã ở trạng thái cuối, không thể chuyển tiếp.
-            </Text>
+            <Text style={[styles.p, { marginTop: 16 }]}>Đơn đã ở trạng thái cuối.</Text>
           ) : (
-            <View className="mt-4 gap-2">
+            <View style={{ marginTop: 16, gap: 10 }}>
               {next.map((nx) => (
-                <View
+                <Button
                   key={nx}
-                  className="w-full">
-                  <Button
-                    title={`Chuyển sang “${STATUS_LABEL[nx]}”`}
-                    variant={nx === 'cancelled' ? 'danger' : 'primary'}
-                    loading={submitting}
-                    disabled={submitting}
-                    onPress={() => onTransition(nx)}
-                  />
-                </View>
+                  title={`Chuyển sang “${STATUS_LABEL[nx]}”`}
+                  variant={nx === 'cancelled' ? 'danger' : 'primary'}
+                  loading={submitting}
+                  disabled={submitting}
+                  onPress={() => onTransition(nx)}
+                />
               ))}
             </View>
           )}
 
-          <View className="mt-4">
-            <Button title="Quay lại" variant="secondary" onPress={() => router.back()} />
+          <View style={{ marginTop: 16 }}>
+            <Button title="Quay lại danh sách" variant="secondary" onPress={() => router.back()} />
           </View>
         </AppCard>
       </ScrollView>
-    </>
+    </AdminScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  pad: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+    paddingTop: 8,
+  },
+  k: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: A.muted,
+    textTransform: 'uppercase',
+  },
+  h1: {
+    marginTop: 8,
+    fontSize: 22,
+    fontWeight: '800',
+    color: A.text,
+  },
+  p: {
+    marginTop: 6,
+    fontSize: 13,
+    color: A.muted,
+    lineHeight: 18,
+  },
+  statusBox: {
+    marginTop: 16,
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: A.surfaceElevated,
+    borderWidth: 1,
+    borderColor: A.border,
+  },
+  statusTxt: {
+    marginTop: 8,
+    fontSize: 17,
+    fontWeight: '800',
+    color: A.accent,
+    textTransform: 'capitalize',
+  },
+  section: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: A.text,
+  },
+  itemName: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: A.text,
+  },
+  itemPrice: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: A.text,
+  },
+  total: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: A.text,
+  },
+});

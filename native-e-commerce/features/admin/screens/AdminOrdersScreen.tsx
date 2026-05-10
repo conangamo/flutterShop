@@ -1,9 +1,11 @@
-import { Stack, useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import {
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
+  StyleSheet,
   Text,
   View,
 } from 'react-native';
@@ -11,6 +13,8 @@ import {
 import { useToast } from '~/components/ToastProvider';
 import { AppCard } from '~/components/ui/AppCard';
 import { EmptyBlock, LoadingBlock } from '~/components/ui/StateBlocks';
+import { AdminScreenShell } from '~/features/admin/ui/AdminChrome';
+import { adminTheme as A } from '~/features/admin/ui/theme';
 import { adminListOrders, type AdminOrderSummary } from '~/lib/api/admin';
 import { ApiError } from '~/lib/api/errors';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
@@ -29,16 +33,16 @@ const STATUS_FILTERS: { id: 'all' | OrderStatus; label: string }[] = [
 function statusBadge(status: OrderStatus) {
   switch (status) {
     case 'delivered':
-      return { bg: '#DCFCE7', fg: '#166534' };
+      return { bg: 'rgba(52,211,153,0.18)', fg: '#6EE7B7' };
     case 'shipped':
-      return { bg: '#FEF3C7', fg: '#92400E' };
+      return { bg: 'rgba(251,191,36,0.18)', fg: '#FCD34D' };
     case 'processing':
-      return { bg: '#DBEAFE', fg: '#1D4ED8' };
+      return { bg: 'rgba(108,99,255,0.22)', fg: '#A5B4FC' };
     case 'cancelled':
-      return { bg: '#FEE2E2', fg: '#991B1B' };
+      return { bg: 'rgba(248,113,113,0.18)', fg: '#FCA5A5' };
     case 'pending':
     default:
-      return { bg: '#F3F4F6', fg: '#374151' };
+      return { bg: 'rgba(148,163,184,0.15)', fg: '#CBD5E1' };
   }
 }
 
@@ -71,96 +75,72 @@ export default function AdminOrdersScreen() {
     [filter, locale, L.errors.homeLoadFailed, L.common.error, addToast]
   );
 
+  useEffect(() => {
+    if (Platform.OS === 'web') void load('initial');
+  }, [load]);
+
   useFocusEffect(
     useCallback(() => {
-      void load('initial');
+      if (Platform.OS !== 'web') void load('initial');
     }, [load])
   );
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-[#F4F4F4]">
-        <View className="px-4 pb-2 pt-4">
-          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Operations</Text>
-          <Text className="mt-1 text-[24px] font-bold text-[#111827]">Quản lý đơn hàng</Text>
-        </View>
+    <AdminScreenShell title="Đơn hàng" subtitle="Lọc trạng thái · mở chi tiết để đổi workflow">
+      <View style={{ flex: 1 }}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="border-b border-[#E5E7EB] bg-white px-4 py-3"
-          contentContainerStyle={{ paddingRight: 8 }}>
-          <View className="flex-row gap-2">
-            {STATUS_FILTERS.map((opt) => {
-              const active = filter === opt.id;
-              return (
-                <Pressable
-                  key={opt.id}
-                  onPress={() => setFilter(opt.id)}
-                  className={`rounded-full border px-3 py-1.5 ${
-                    active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
-                  }`}>
-                  <Text
-                    className={`text-[12px] font-semibold ${
-                      active ? 'text-[#F97316]' : 'text-[#374151]'
-                    }`}>
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
+          style={styles.filterBar}
+          contentContainerStyle={styles.filterInner}>
+          {STATUS_FILTERS.map((opt) => {
+            const active = filter === opt.id;
+            return (
+              <Pressable
+                key={opt.id}
+                onPress={() => setFilter(opt.id)}
+                style={[styles.chip, active && styles.chipActive]}>
+                <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>{opt.label}</Text>
+              </Pressable>
+            );
+          })}
         </ScrollView>
 
         <ScrollView
-          contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: 16, paddingBottom: 56 }}
           refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => load('refresh')}
-              tintColor="#F97316"
-            />
-          }>
+            <RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} tintColor={A.accent} />
+          }
+          showsVerticalScrollIndicator={false}>
           {loading ? (
-            <LoadingBlock label="Đang tải danh sách đơn hàng..." />
+            <LoadingBlock label="Đang tải đơn hàng..." />
           ) : orders.length === 0 ? (
-            <EmptyBlock title="Không có đơn" hint="Hiện chưa có đơn phù hợp với bộ lọc đã chọn." />
+            <EmptyBlock title="Không có đơn" hint="Đổi bộ lọc hoặc chờ đơn mới." />
           ) : (
-            <View className="gap-3">
+            <View style={{ gap: 12 }}>
               {orders.map((o) => {
                 const badge = statusBadge(o.status);
                 return (
                   <AppCard key={o.id} className="p-0">
                     <Pressable
-                      onPress={() =>
-                        router.push(`/admin/orders/${encodeURIComponent(o.id)}` as never)
-                      }
-                      className="rounded-[24px] p-4">
+                      onPress={() => router.push(`/admin/orders/${encodeURIComponent(o.id)}` as never)}
+                      style={{ padding: 18 }}>
                       <View className="flex-row items-start justify-between">
                         <View>
-                          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">
-                            Mã đơn
-                          </Text>
-                          <Text className="mt-1 text-[16px] font-bold text-[#1F2937]">#{o.code}</Text>
-                          <Text className="mt-1 text-[12px] text-[#6B7280]">
-                            {formatDate(o.date)} • {o.shipName}
+                          <Text style={styles.meta}>Mã đơn</Text>
+                          <Text style={styles.code}>#{o.code}</Text>
+                          <Text style={styles.sub}>
+                            {formatDate(o.date)} · {o.shipName}
                           </Text>
                         </View>
-                        <View
-                          style={{ backgroundColor: badge.bg }}
-                          className="rounded-full px-3 py-1.5">
-                          <Text
-                            style={{ color: badge.fg }}
-                            className="text-[12px] font-semibold capitalize">
-                            {o.status}
-                          </Text>
+                        <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                          <Text style={[styles.badgeTxt, { color: badge.fg }]}>{o.status}</Text>
                         </View>
                       </View>
-                      <View className="mt-3 flex-row items-center justify-between">
-                        <Text className="text-[12px] text-[#6B7280]">{o.itemCount} sản phẩm</Text>
-                        <Text className="text-[16px] font-bold text-[#1F2937]">
-                          {formatCurrency(o.total)}
-                        </Text>
+                      <View className="mt-4 flex-row items-center justify-between border-t border-[#2A2A3A] pt-3">
+                        <Text style={styles.sub}>{o.itemCount} sản phẩm</Text>
+                        <Text style={styles.total}>{formatCurrency(o.total)}</Text>
                       </View>
                     </Pressable>
                   </AppCard>
@@ -170,6 +150,74 @@ export default function AdminOrdersScreen() {
           )}
         </ScrollView>
       </View>
-    </>
+    </AdminScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  filterBar: {
+    flexGrow: 0,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: A.border,
+    backgroundColor: A.surface,
+  },
+  filterInner: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap: 8,
+    flexDirection: 'row',
+  },
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: A.border,
+    backgroundColor: A.surfaceElevated,
+  },
+  chipActive: {
+    borderColor: A.accent,
+    backgroundColor: A.accentSoft,
+  },
+  chipLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: A.muted,
+  },
+  chipLabelActive: {
+    color: A.accent,
+  },
+  meta: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: A.muted,
+    textTransform: 'uppercase',
+  },
+  code: {
+    marginTop: 6,
+    fontSize: 17,
+    fontWeight: '800',
+    color: A.text,
+  },
+  sub: {
+    marginTop: 6,
+    fontSize: 12,
+    color: A.muted,
+  },
+  badge: {
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  badgeTxt: {
+    fontSize: 11,
+    fontWeight: '800',
+    textTransform: 'capitalize',
+  },
+  total: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: A.text,
+  },
+});

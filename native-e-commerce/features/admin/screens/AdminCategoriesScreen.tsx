@@ -4,6 +4,8 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 
 import { AppInput } from '~/components/ui/AppInput';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
+import { AdminScreenShell } from '~/features/admin/ui/AdminChrome';
+import { adminTheme as A } from '~/features/admin/ui/theme';
 import {
   adminCreateCategory,
   adminDeleteCategory,
@@ -135,11 +137,18 @@ export default function AdminCategoriesScreen() {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-bg-primary"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-      <View className="px-4 pb-10 pt-5">
-        <View className="rounded-card bg-bg-surface p-4">
+    <AdminScreenShell title="Danh mục" subtitle="Ảnh, slug và parent category">
+      <ScrollView
+        className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void load('refresh')}
+            tintColor={A.accent}
+          />
+        }>
+        <View className="px-4 pb-10 pt-2">
+        <View className="rounded-[20px] border border-[#2A2D42] bg-[#12131C] p-4">
           <Text className="text-[15px] font-semibold text-text-primary">
             {editingId ? 'Cập nhật danh mục' : 'Tạo danh mục mới'}
           </Text>
@@ -181,7 +190,7 @@ export default function AdminCategoriesScreen() {
           ) : (
             <View className="mt-3 gap-3">
               {rows.map((r) => (
-                <View key={r.id} className="rounded-card bg-bg-surface p-4">
+                <View key={r.id} className="rounded-[20px] border border-[#2A2D42] bg-[#12131C] p-4">
                   <Text className="text-[15px] font-bold text-text-primary">{r.label}</Text>
                   <Text className="mt-1 text-[12px] text-text-secondary">
                     id: {r.id} · slug: {r.slug}
@@ -201,5 +210,6 @@ export default function AdminCategoriesScreen() {
           )}
         </View>
       </ScrollView>
+    </AdminScreenShell>
   );
 }

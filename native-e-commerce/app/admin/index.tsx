@@ -1,14 +1,67 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { useToast } from '~/components/ToastProvider';
+import { AdminScreenShell } from '~/features/admin/ui/AdminChrome';
+import { adminTheme as A } from '~/features/admin/ui/theme';
 import { fetchCurrentUser } from '~/lib/api/users';
 import { ApiError } from '~/lib/api/errors';
 import { getAccessToken } from '~/lib/api/token';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
 import type { CurrentUser } from '~/lib/types/user';
+
+const TILES: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle: string;
+  href: '/admin/dashboard' | '/admin/orders' | '/admin/inventory' | '/admin/promos' | '/admin/users' | '/admin/categories';
+}[] = [
+  {
+    icon: 'stats-chart-outline',
+    title: 'Dashboard báo cáo',
+    subtitle: 'Doanh thu, top SKU, cảnh báo tồn',
+    href: '/admin/dashboard',
+  },
+  {
+    icon: 'receipt-outline',
+    title: 'Đơn hàng',
+    subtitle: 'Trạng thái · tracking · giao vận',
+    href: '/admin/orders',
+  },
+  {
+    icon: 'cube-outline',
+    title: 'Kho & biến thể',
+    subtitle: 'Tồn theo size, bulk stock',
+    href: '/admin/inventory',
+  },
+  {
+    icon: 'pricetags-outline',
+    title: 'Khuyến mãi',
+    subtitle: 'Mã giảm · quota · min đơn',
+    href: '/admin/promos',
+  },
+  {
+    icon: 'people-outline',
+    title: 'Người dùng',
+    subtitle: 'Role · khóa tài khoản',
+    href: '/admin/users',
+  },
+  {
+    icon: 'grid-outline',
+    title: 'Danh mục',
+    subtitle: 'Ảnh, slug, cấu trúc shop',
+    href: '/admin/categories',
+  },
+];
 
 export default function AdminHomeScreen() {
   const router = useRouter();
@@ -55,100 +108,177 @@ export default function AdminHomeScreen() {
 
   if (loading) {
     return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View className="flex-1 items-center justify-center bg-white">
-          <ActivityIndicator size="large" color="#F97316" />
+      <AdminScreenShell title="Đang kiểm tra quyền..." showQuickNav={false}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={A.accent} />
+          <Text style={styles.loadHint}>Xác thực phiên làm việc…</Text>
         </View>
-      </>
+      </AdminScreenShell>
     );
   }
 
   if (forbidden) {
     return (
-      <>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View className="flex-1 items-center justify-center bg-white px-6">
-          <Ionicons name="lock-closed-outline" size={36} color="#9CA3AF" />
-          <Text className="mt-3 text-[16px] font-semibold text-[#1F2937]">
-            Tài khoản không có quyền admin
-          </Text>
-          <Pressable onPress={() => router.back()} className="mt-4 rounded-full bg-[#F97316] px-5 py-2.5">
-            <Text className="text-[13px] font-semibold text-white">Quay lại</Text>
+      <AdminScreenShell title="Không có quyền" subtitle="Tài khoản này không thuộc nhóm admin/staff." showQuickNav={false}>
+        <View style={styles.center}>
+          <View style={styles.lockCircle}>
+            <Ionicons name="lock-closed-outline" size={36} color={A.muted} />
+          </View>
+          <Pressable onPress={() => router.back()} style={styles.primaryBtn}>
+            <Text style={styles.primaryBtnLabel}>Quay lại</Text>
           </Pressable>
         </View>
-      </>
+      </AdminScreenShell>
     );
   }
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <ScrollView className="flex-1 bg-[#F4F4F4]">
-        <View className="m-4 rounded-[24px] bg-white p-4 shadow-sm">
-          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Đăng nhập</Text>
-          <Text className="mt-1 text-[18px] font-bold text-[#1F2937]">{user?.name}</Text>
-          <Text className="text-[12px] text-[#6B7280]">{user?.email}</Text>
+    <AdminScreenShell title="Trung tâm điều khiển" subtitle={user ? `${user.name} · ${user.email}` : ''}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.scrollPad}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.heroCard}>
+          <Text style={styles.heroRole}>{user?.role?.toUpperCase() ?? 'STAFF'}</Text>
+          <Text style={styles.heroName}>{user?.name}</Text>
+          <Text style={styles.heroEmail}>{user?.email}</Text>
         </View>
 
-        <AdminTile
-          icon="stats-chart-outline"
-          title="Dashboard báo cáo"
-          subtitle="Doanh thu, top sản phẩm, tồn kho thấp"
-          onPress={() => router.push('/admin/dashboard' as never)}
-        />
-        <AdminTile
-          icon="cart-outline"
-          title="Quản lý đơn hàng"
-          subtitle="Cập nhật trạng thái đơn, tracking"
-          onPress={() => router.push('/admin/orders' as never)}
-        />
-        <AdminTile
-          icon="cube-outline"
-          title="Tồn kho theo size"
-          subtitle="Cập nhật số lượng từng size/màu"
-          onPress={() => router.push('/admin/inventory' as never)}
-        />
-        <AdminTile
-          icon="pricetags-outline"
-          title="Khuyến mãi"
-          subtitle="Tạo và quản lý promo code"
-          onPress={() => router.push('/admin/promos' as never)}
-        />
-        <AdminTile
-          icon="people-outline"
-          title="Người dùng"
-          subtitle="Khoá tài khoản, đổi role staff/admin"
-          onPress={() => router.push('/admin/users' as never)}
-        />
+        <Text style={styles.sectionLabel}>MODULE</Text>
+        <View style={styles.tileGrid}>
+          {TILES.map((t) => (
+            <Pressable
+              key={t.href}
+              onPress={() => router.push(t.href as never)}
+              style={({ pressed }) => [styles.tile, pressed && { opacity: 0.92 }]}>
+              <View style={styles.tileIcon}>
+                <Ionicons name={t.icon} size={22} color={A.accent} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.tileTitle}>{t.title}</Text>
+                <Text style={styles.tileSub}>{t.subtitle}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={A.muted} />
+            </Pressable>
+          ))}
+        </View>
       </ScrollView>
-    </>
+    </AdminScreenShell>
   );
 }
 
-function AdminTile({
-  icon,
-  title,
-  subtitle,
-  onPress,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="mx-4 mb-3 flex-row items-center gap-3 rounded-[20px] bg-white p-4 shadow-sm">
-      <View className="h-12 w-12 items-center justify-center rounded-full bg-[#FFF4ED]">
-        <Ionicons name={icon} size={22} color="#F97316" />
-      </View>
-      <View className="flex-1">
-        <Text className="text-[15px] font-semibold text-[#1F2937]">{title}</Text>
-        <Text className="text-[12px] text-[#6B7280]">{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
-    </Pressable>
-  );
-}
+const styles = StyleSheet.create({
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    gap: 16,
+  },
+  loadHint: {
+    marginTop: 12,
+    fontSize: 13,
+    color: A.muted,
+  },
+  lockCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: A.surfaceElevated,
+    borderWidth: 1,
+    borderColor: A.border,
+    marginBottom: 8,
+  },
+  primaryBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 999,
+    backgroundColor: A.accent,
+  },
+  primaryBtnLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  scrollPad: {
+    paddingHorizontal: 16,
+    paddingBottom: 48,
+    paddingTop: 8,
+  },
+  heroCard: {
+    borderRadius: 22,
+    padding: 18,
+    marginBottom: 16,
+    backgroundColor: A.surface,
+    borderWidth: 1,
+    borderColor: A.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 10,
+  },
+  heroRole: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 2,
+    color: A.accent,
+    marginBottom: 8,
+  },
+  heroName: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: A.text,
+  },
+  heroEmail: {
+    marginTop: 6,
+    fontSize: 13,
+    color: A.muted,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 2,
+    color: A.muted,
+    marginBottom: 10,
+    marginLeft: 4,
+  },
+  tileGrid: {
+    gap: 10,
+  },
+  tile: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: A.surfaceElevated,
+    borderWidth: 1,
+    borderColor: A.border,
+  },
+  tileIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: A.accentSoft,
+    borderWidth: 1,
+    borderColor: A.border,
+  },
+  tileTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: A.text,
+  },
+  tileSub: {
+    marginTop: 4,
+    fontSize: 12,
+    color: A.muted,
+    lineHeight: 16,
+  },
+});

@@ -1,6 +1,5 @@
-import { Stack } from 'expo-router';
 import { useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useToast } from '~/components/ToastProvider';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
@@ -21,6 +20,8 @@ import {
   adminToggleProductActive,
 } from '~/lib/api/admin';
 import { ApiError } from '~/lib/api/errors';
+import { AdminScreenShell } from '~/features/admin/ui/AdminChrome';
+import { adminTheme as A } from '~/features/admin/ui/theme';
 import { getAppLocale, resolveApiError, strings } from '~/lib/i18n';
 
 export default function AdminInventoryScreen() {
@@ -123,9 +124,8 @@ export default function AdminInventoryScreen() {
   });
 
   return (
-    <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-[#F4F4F4]">
+    <AdminScreenShell title="Kho hàng" subtitle="SKU · biến thể · bật/tắt bán · nhập tồn nhanh">
+      <View style={{ flex: 1 }}>
         <InventoryToolbar
           activeFilter={activeFilter}
           onCreate={() => setShowCreate(true)}
@@ -133,18 +133,19 @@ export default function AdminInventoryScreen() {
         />
 
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 20, paddingBottom: 64 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 64 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => load('refresh')}
-              tintColor="#F97316"
+              tintColor={A.accent}
             />
-          }>
-          <View className="mb-3">
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Sản phẩm & tồn kho</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              Quản lý trạng thái bán, biến thể và số lượng tồn theo từng sản phẩm.
+          }
+          showsVerticalScrollIndicator={false}>
+          <View style={{ marginBottom: 14 }}>
+            <Text style={styles.screenTitle}>Danh mục sản phẩm đang bán</Text>
+            <Text style={styles.screenSub}>
+              Chọn “Sửa” để chỉnh giá, mô tả và variant; lưu tồn từng dòng.
             </Text>
           </View>
           {loading ? (
@@ -236,6 +237,20 @@ export default function AdminInventoryScreen() {
           setConfirm(null);
         }}
       />
-    </>
+    </AdminScreenShell>
   );
 }
+
+const styles = StyleSheet.create({
+  screenTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: A.text,
+  },
+  screenSub: {
+    marginTop: 6,
+    fontSize: 13,
+    color: A.muted,
+    lineHeight: 18,
+  },
+});

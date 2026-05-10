@@ -1,22 +1,25 @@
 import { Stack } from 'expo-router';
 
+import { adminTheme } from '~/features/admin/ui/theme';
+
 export default function AdminLayout() {
+  const bg = adminTheme.bg;
   return (
     <Stack
       screenOptions={{
         headerShown: false,
         headerStyle: {
-          backgroundColor: '#0A0A0F', // bg-primary
+          backgroundColor: bg,
         },
-        headerTintColor: '#F0F0F5', // text-primary
+        headerTintColor: adminTheme.text,
         headerTitleStyle: {
           fontWeight: '600',
           fontSize: 18,
-          color: '#F0F0F5',
+          color: adminTheme.text,
         },
         headerShadowVisible: false,
         contentStyle: {
-          backgroundColor: '#0A0A0F',
+          backgroundColor: bg,
         },
       }}
     >

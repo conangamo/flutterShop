@@ -52,13 +52,13 @@ export function InventoryToolbar({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="border-b border-[#E5E7EB] bg-white px-4 py-3"
+      className="border-b border-[#2A2D42] bg-[#12131C] px-4 py-3"
       contentContainerStyle={{ paddingRight: 8 }}>
       <View className="flex-row gap-2">
         <Pressable
           onPress={onCreate}
-          className="rounded-full border border-[#F97316] bg-[#FFF4ED] px-3 py-2">
-          <Text className="text-[12px] font-semibold text-[#F97316]">+ Tạo sản phẩm</Text>
+          className="rounded-full border border-[#6C63FF] bg-[rgba(108,99,255,0.14)] px-3 py-2">
+          <Text className="text-[12px] font-semibold text-[#6C63FF]">+ Tạo sản phẩm</Text>
         </Pressable>
         {(
           [
@@ -73,9 +73,9 @@ export function InventoryToolbar({
               key={opt.id}
               onPress={() => onFilterChange(opt.id)}
               className={`rounded-full border px-3 py-2 ${
-                active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
+                active ? 'border-[#6C63FF] bg-[rgba(108,99,255,0.14)]' : 'border-[#2A2D42] bg-[#12131C]'
               }`}>
-              <Text className={`text-[12px] font-semibold ${active ? 'text-[#F97316]' : 'text-[#374151]'}`}>
+              <Text className={`text-[12px] font-semibold ${active ? 'text-[#6C63FF]' : 'text-[#D4D4DE]'}`}>
                 {opt.label}
               </Text>
             </Pressable>
@@ -102,10 +102,10 @@ export function CreateProductModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-black/40 px-5">
-        <View className="max-h-[85%] w-full max-w-[520px] rounded-[24px] bg-white p-5">
+        <View className="max-h-[85%] w-full max-w-[520px] rounded-[24px] border border-[#2A2D42] bg-[#12131C] p-5">
           <ScrollView showsVerticalScrollIndicator={false}>
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Tạo sản phẩm mới</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
+            <Text className="text-[20px] font-semibold text-[#F0F0F5]">Tạo sản phẩm mới</Text>
+            <Text className="mt-1 text-[13px] text-[#9CA3AF]">
               Điền thông tin cơ bản để khởi tạo sản phẩm trong catalog.
             </Text>
             <View className="mt-4 gap-2">
@@ -116,10 +116,10 @@ export function CreateProductModal({
               <AppInput label="Mô tả" value={form.description} onChangeText={(v) => onChange((prev) => ({ ...prev, description: v }))} />
             </View>
             <View className="mt-5 flex-row flex-wrap justify-end gap-2">
-              <Pressable onPress={onClose} className="rounded-full bg-[#F3F4F6] px-4 py-2.5">
-                <Text className="text-[12px] font-semibold text-[#374151]">Huỷ</Text>
+              <Pressable onPress={onClose} className="rounded-full bg-[#1C1D2E] px-4 py-2.5">
+                <Text className="text-[12px] font-semibold text-[#D4D4DE]">Huỷ</Text>
               </Pressable>
-              <Pressable onPress={onSubmit} className="rounded-full bg-[#F97316] px-4 py-2.5">
+              <Pressable onPress={onSubmit} className="rounded-full bg-[#6C63FF] px-4 py-2.5">
                 <Text className="text-[12px] font-semibold text-white">Tạo</Text>
               </Pressable>
             </View>
@@ -180,18 +180,18 @@ export function ProductCard({
   onCreateVariant: () => void;
 }) {
   return (
-    <View className="rounded-[20px] bg-white p-4 shadow-sm">
+    <View className="rounded-[20px] border border-[#2A2D42] bg-[#12131C] p-4 shadow-sm">
       <View className="flex-row items-start justify-between gap-3">
         <View className="flex-1">
-          <Text className="text-[15px] font-bold text-[#1F2937]" numberOfLines={2}>
+          <Text className="text-[15px] font-bold text-[#F0F0F5]" numberOfLines={2}>
             {product.name}
           </Text>
-          <Text className="mt-1 text-[12px] text-[#6B7280]">
+          <Text className="mt-1 text-[12px] text-[#9CA3AF]">
             {formatCurrency(product.basePrice)} · Tồn tổng: {product.totalStock ?? '—'}
           </Text>
         </View>
-        <Pressable onPress={onToggleSelect} className="rounded-full bg-[#F3F4F6] px-3 py-2">
-          <Text className="text-[11px] font-semibold text-[#374151]">Sửa</Text>
+        <Pressable onPress={onToggleSelect} className="rounded-full bg-[#1C1D2E] px-3 py-2">
+          <Text className="text-[11px] font-semibold text-[#D4D4DE]">Sửa</Text>
         </Pressable>
       </View>
 
@@ -245,24 +245,24 @@ function VariantRow({
   return (
     <View className="flex-row items-center gap-3 rounded-[16px] bg-[#F9FAFB] p-3">
       <View className="flex-1">
-        <Text className="text-[13px] font-semibold text-[#1F2937]">
+        <Text className="text-[13px] font-semibold text-[#F0F0F5]">
           {variant.size ? `Size ${variant.size}` : 'Default'}
           {variant.color ? ` · ${variant.color}` : ''}
         </Text>
-        <Text className="text-[11px] text-[#6B7280]">SKU: {variant.sku}</Text>
+        <Text className="text-[11px] text-[#9CA3AF]">SKU: {variant.sku}</Text>
       </View>
       <AppInput
         value={stockValue}
         onChangeText={(t) => onStockChange(t.replace(/[^0-9]/g, ''))}
         keyboardType="numeric"
         className={`h-9 w-16 px-2 py-0 text-center text-[13px] font-semibold ${
-          lowStock ? 'border-[#FCA5A5] text-[#B91C1C]' : 'border-[#E5E7EB] text-[#1F2937]'
+          lowStock ? 'border-[#FCA5A5] text-[#B91C1C]' : 'border-[#2A2D42] text-[#F0F0F5]'
         }`}
       />
       <Pressable
         disabled={!canSave}
         onPress={onSave}
-        className={`rounded-full px-3 py-1.5 ${canSave ? 'bg-[#F97316]' : 'bg-[#FED7AA]'}`}>
+        className={`rounded-full px-3 py-1.5 ${canSave ? 'bg-[#6C63FF]' : 'bg-[#FED7AA]'}`}>
         <Text className="text-[11px] font-semibold text-white">{saving ? '...' : 'Lưu'}</Text>
       </Pressable>
     </View>
@@ -291,8 +291,8 @@ function ProductEditorPanel({
   onCreateVariant: () => void;
 }) {
   return (
-    <View className="mt-4 rounded-[16px] border border-[#E5E7EB] bg-[#F9FAFB] p-4">
-      <Text className="mb-3 text-[14px] font-semibold text-[#1F2937]">Thông tin sản phẩm</Text>
+    <View className="mt-4 rounded-[16px] border border-[#2A2D42] bg-[#F9FAFB] p-4">
+      <Text className="mb-3 text-[14px] font-semibold text-[#F0F0F5]">Thông tin sản phẩm</Text>
       <View className="gap-2">
         <AppInput label="Tên" value={editProductForm.name} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, name: v }))} />
         <AppInput label="Slug" value={editProductForm.slug} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, slug: v }))} />
@@ -301,11 +301,11 @@ function ProductEditorPanel({
         <AppInput label="Ảnh mặc định URL" value={editProductForm.defaultImage} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, defaultImage: v }))} />
         <AppInput label="Mô tả" value={editProductForm.description} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, description: v }))} />
         <ActionRow>
-          <Pressable onPress={onSaveProduct} className="rounded-full bg-[#F97316] px-3 py-2">
+          <Pressable onPress={onSaveProduct} className="rounded-full bg-[#6C63FF] px-3 py-2">
             <Text className="text-[12px] font-semibold text-white">Lưu sản phẩm</Text>
           </Pressable>
-          <Pressable onPress={onToggleActive} className="rounded-full bg-[#F3F4F6] px-3 py-2">
-            <Text className="text-[12px] font-semibold text-[#374151]">{isActive ? 'Tạm ngưng' : 'Bật bán'}</Text>
+          <Pressable onPress={onToggleActive} className="rounded-full bg-[#1C1D2E] px-3 py-2">
+            <Text className="text-[12px] font-semibold text-[#D4D4DE]">{isActive ? 'Tạm ngưng' : 'Bật bán'}</Text>
           </Pressable>
           <Pressable onPress={onDeleteProduct} className="rounded-full bg-[#FEE2E2] px-3 py-2">
             <Text className="text-[12px] font-semibold text-[#B91C1C]">Xoá</Text>
@@ -313,7 +313,7 @@ function ProductEditorPanel({
         </ActionRow>
       </View>
 
-      <Text className="mb-3 mt-5 text-[14px] font-semibold text-[#1F2937]">Thêm biến thể mới</Text>
+      <Text className="mb-3 mt-5 text-[14px] font-semibold text-[#F0F0F5]">Thêm biến thể mới</Text>
       <View className="gap-2">
         <AppInput label="Variant ID" value={newVariantForm.id} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, id: v }))} />
         <AppInput label="SKU" value={newVariantForm.sku} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, sku: v }))} />
@@ -334,7 +334,7 @@ function ProductEditorPanel({
           </View>
         </View>
         <AppInput label="Image URL" value={newVariantForm.image} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, image: v }))} />
-        <Pressable onPress={onCreateVariant} className="rounded-full bg-[#111827] px-3 py-2">
+        <Pressable onPress={onCreateVariant} className="rounded-full bg-[#6C63FF] px-3 py-2">
           <Text className="text-center text-[12px] font-semibold text-white">Tạo variant</Text>
         </Pressable>
       </View>
@@ -359,15 +359,15 @@ export function ConfirmModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View className="flex-1 items-center justify-center bg-black/40 px-5">
-        <View className="max-h-[80%] w-full max-w-[460px] rounded-[22px] bg-white p-5">
-          <Text className="text-[20px] font-semibold text-[#111827]">{title}</Text>
-          <Text className="mt-1 text-[13px] text-[#6B7280]">Thao tác này ảnh hưởng dữ liệu đang hiển thị.</Text>
+        <View className="max-h-[80%] w-full max-w-[460px] rounded-[22px] border border-[#2A2D42] bg-[#12131C] p-5">
+          <Text className="text-[20px] font-semibold text-[#F0F0F5]">{title}</Text>
+          <Text className="mt-1 text-[13px] text-[#9CA3AF]">Thao tác này ảnh hưởng dữ liệu đang hiển thị.</Text>
           <ScrollView className="mt-3 max-h-[220px]" showsVerticalScrollIndicator={false}>
-            <Text className="text-[13px] text-[#6B7280]">{body}</Text>
+            <Text className="text-[13px] text-[#9CA3AF]">{body}</Text>
           </ScrollView>
           <View className="mt-5 flex-row flex-wrap justify-end gap-2">
-            <Pressable onPress={onClose} className="rounded-full bg-[#F3F4F6] px-4 py-2.5">
-              <Text className="text-[12px] font-semibold text-[#374151]">Huỷ</Text>
+            <Pressable onPress={onClose} className="rounded-full bg-[#1C1D2E] px-4 py-2.5">
+              <Text className="text-[12px] font-semibold text-[#D4D4DE]">Huỷ</Text>
             </Pressable>
             <Pressable
               disabled={submitting}
