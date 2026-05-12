@@ -30,7 +30,7 @@ A full-stack, multi-tenant e-commerce platform built with React Native (Expo), F
 - 👥 **User Management** - Manage customer accounts and roles
 - 🎁 **Promotions** - Create and manage discount vouchers
 - 📈 **Analytics** - Sales reports and performance metrics
-- 🧠 **AI application**: search by image
+- 🧠 **AI application** - Search by image
 
 ### Technical Features
 - 🏢 **Multi-tenant Architecture** - Support for multiple store types (jewelry, shoes)
