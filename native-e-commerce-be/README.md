@@ -34,15 +34,11 @@ Backend FastAPI cho Native E-Commerce (PostgreSQL, multi-store qua `X-Store-Id`)
 - Admin
   - `PATCH /api/v1/admin/users/{user_id}/status` (Bearer, role `admin`)
 
-## Auth / Roles
+## Auth 
 
 - Header chuẩn cho route protected:
   - `Authorization: Bearer <token>`
   - `X-Store-Id: <int>` (optional, default `1`)
-- Role hiện tại:
-  - `user`
-  - `staff`
-  - `admin`
 - Chỉ `admin` mới được đổi `is_active` của user khác.
 - User `is_active = false` không đăng nhập được (`account_inactive`).
 - Logout dùng cơ chế revoke access token qua bảng `revoked_access_tokens`.

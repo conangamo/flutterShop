@@ -25,10 +25,10 @@ Hoặc với Docker Compose (từ thư mục `native-e-commerce-be`). **Tên dat
 docker compose exec -T db psql -U postgres -d YOUR_DB_NAME -f - < ../database/migrations/apply_auth_migrations.sql
 ```
 
-Trên PowerShell (Windows), ví dụ DB tên `style_up`:
+Trên PowerShell (Windows), ví dụ DB tên `shoestore`:
 
 ```powershell
-Get-Content ..\database\migrations\apply_auth_migrations.sql -Raw | docker compose exec -T db psql -U postgres -d style_up
+Get-Content ..\database\migrations\apply_auth_migrations.sql -Raw | docker compose exec -T db psql -U postgres -d shoestore
 ```
 
 ## Applying Migration 0006 (Payment Method Enum)
