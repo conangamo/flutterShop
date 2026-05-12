@@ -21,8 +21,6 @@ A full-stack, multi-tenant e-commerce platform built with React Native (Expo), F
 - 📍 **Address Management** - Save multiple shipping addresses
 - 👤 **User Profile** - Update personal information and avatar
 - 🎯 **Product Details** - View detailed product information with variants (size, color)
-- ⭐ **Product Reviews** - Rating and review system
-- 🎨 **Dark/Light Mode** - Automatic theme switching
 
 ### Admin Features
 - 📊 **Dashboard** - Overview of sales, orders, and key metrics
@@ -32,10 +30,11 @@ A full-stack, multi-tenant e-commerce platform built with React Native (Expo), F
 - 👥 **User Management** - Manage customer accounts and roles
 - 🎁 **Promotions** - Create and manage discount vouchers
 - 📈 **Analytics** - Sales reports and performance metrics
+- 🧠 **AI application**: search by image
 
 ### Technical Features
 - 🏢 **Multi-tenant Architecture** - Support for multiple store types (jewelry, shoes)
-- 🔒 **Role-based Access Control** - User, Staff, and Admin roles
+- 🔒 **Role-based Access Control** - User, Admin 
 - 💳 **Multiple Payment Methods** - Credit card, COD, E-wallet support
 - 📱 **Cross-platform** - iOS, Android, and Web support
 - 🎨 **Modern UI** - Built with NativeWind (Tailwind CSS for React Native)
