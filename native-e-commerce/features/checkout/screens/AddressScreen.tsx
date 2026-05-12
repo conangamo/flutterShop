@@ -4,6 +4,7 @@ import { useCallback, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Button } from '~/components/Button';
+import { AddressCard } from '~/components/address/AddressCard';
 import { getAddresses } from '~/features/account/services/addressStorage';
 import type { Address } from '~/lib/types/models';
 import { useToast } from '~/components/ToastProvider';
@@ -63,85 +64,66 @@ export default function AddressScreen() {
             </Text>
 
             {addresses.length === 0 ? (
-              <Text className="mt-6 text-[15px] text-text-secondary">
-                Chưa có địa chỉ nào. Mở sổ địa chỉ hoặc thêm mới bên dưới.
-              </Text>
+              <View className="mt-6 rounded-2xl bg-bg-surface border border-semantic-border p-6">
+                <Text className="text-center text-[15px] text-text-secondary">
+                  Chưa có địa chỉ nào. Mở sổ địa chỉ hoặc thêm mới bên dưới.
+                </Text>
+              </View>
             ) : (
-              <View className="mt-5 gap-3">
-                {addresses.map((address) => {
-                  const isSelected = address.id === selectedAddressId;
-
-                  return (
-                    <Pressable
-                      key={address.id}
-                      onPress={() => setSelectedAddressId(address.id)}
-                      className={`rounded-2xl border p-4 ${
-                        isSelected ? 'border-accent bg-accent/10' : 'border-semantic-border bg-bg-surface'
-                      }`}>
-                      <View className="flex-row items-start gap-3">
-                        <View
-                          className={`mt-0.5 h-11 w-11 items-center justify-center rounded-full ${
-                            isSelected ? 'bg-accent' : 'bg-bg-elevated'
-                          }`}>
-                          <Ionicons
-                            name="location-outline"
-                            size={18}
-                            color={isSelected ? '#FFFFFF' : '#8888A0'}
-                          />
-                        </View>
-
-                        <View className="flex-1">
-                          <View className="flex-row items-center gap-2">
-                            <Text className={`text-[15px] font-semibold ${isSelected ? 'text-accent' : 'text-text-primary'}`}>
-                              {address.name}
-                            </Text>
-                            {address.isDefault ? (
-                              <View className="rounded-full bg-semantic-success/10 border border-semantic-success/25 px-2 py-1">
-                                <Text className="text-[10px] font-semibold text-semantic-success">
-                                  Mặc định
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-                          <Text className="mt-1 text-[13px] leading-[20px] text-text-secondary">
-                            {address.address}
-                          </Text>
-                          <Text className="mt-1 text-[13px] text-text-secondary">
-                            {address.city} • {address.phone}
-                          </Text>
-                        </View>
-
-                        {isSelected && (
-                          <View className="absolute top-3 right-3 w-5 h-5 rounded-full bg-accent items-center justify-center">
-                            <Text className="text-white text-xs font-extrabold">✓</Text>
-                          </View>
-                        )}
-                      </View>
-                    </Pressable>
-                  );
-                })}
+              <View className="mt-5" style={{ gap: 14 }}>
+                {addresses.map((address) => (
+                  <AddressCard
+                    key={address.id}
+                    address={address}
+                    isSelected={address.id === selectedAddressId}
+                    onPress={() => setSelectedAddressId(address.id)}
+                  />
+                ))}
               </View>
             )}
 
-            <View className="mt-5 rounded-2xl bg-bg-surface border border-semantic-border p-4">
-              <Text className="text-[16px] font-semibold text-text-primary">Địa chỉ đã chọn</Text>
-              <Text className="mt-3 text-[14px] font-semibold text-text-primary">
-                {selectedAddress?.name ?? '—'}
-              </Text>
-              <Text className="mt-1 text-[13px] leading-[20px] text-text-secondary">
-                {selectedAddress?.address ?? ''}
-              </Text>
-              <Text className="mt-1 text-[13px] text-text-secondary">
-                {selectedAddress ? `${selectedAddress.city} • ${selectedAddress.phone}` : ''}
-              </Text>
+            <View className="mt-5 rounded-[24px] bg-bg-surface border border-semantic-border p-5">
+              <View className="flex-row items-center gap-2 mb-3">
+                <Ionicons name="checkmark-circle" size={22} color="#6C63FF" />
+                <Text className="text-[17px] font-bold text-text-primary">Địa chỉ đã chọn</Text>
+              </View>
+              {selectedAddress ? (
+                <View className="rounded-[18px] bg-bg-elevated border border-semantic-border p-4">
+                  <Text className="text-[15px] font-bold text-text-primary mb-2">
+                    {selectedAddress.name}
+                  </Text>
+                  <View className="flex-row items-start gap-2 mb-1">
+                    <Ionicons name="location-outline" size={16} color="#8888A0" style={{ marginTop: 2 }} />
+                    <Text className="flex-1 text-[14px] leading-[21px] text-text-secondary">
+                      {selectedAddress.address}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center gap-2">
+                    <Ionicons name="call-outline" size={14} color="#8888A0" />
+                    <Text className="text-[13px] text-text-secondary">
+                      {selectedAddress.city} • {selectedAddress.phone}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <Text className="text-[14px] text-text-secondary text-center py-3">
+                  Chưa chọn địa chỉ
+                </Text>
+              )}
             </View>
 
             <View className="mt-5 gap-3">
               <Button title="Sử dụng địa chỉ này" onPress={handleUseAddress} />
               <Pressable
-                className="items-center rounded-2xl border border-dashed border-accent py-4"
+                className="items-center rounded-2xl border-2 border-dashed border-accent/50 py-4"
+                style={{
+                  backgroundColor: 'rgba(108, 99, 255, 0.05)',
+                }}
                 onPress={() => router.push('/addresses/new')}>
-                <Text className="text-[15px] font-semibold text-accent">Thêm địa chỉ mới</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons name="add-circle-outline" size={20} color="#6C63FF" />
+                  <Text className="text-[15px] font-bold text-accent">Thêm địa chỉ mới</Text>
+                </View>
               </Pressable>
             </View>
           </View>

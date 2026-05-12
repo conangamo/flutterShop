@@ -20,8 +20,8 @@ export default function AdminOrdersLayout() {
         },
       }}
     >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false, title: 'Danh sách đơn hàng' }} />
+      <Stack.Screen name="[id]" options={{ headerShown: false, title: 'Chi tiết đơn hàng' }} />
     </Stack>
   );
 }

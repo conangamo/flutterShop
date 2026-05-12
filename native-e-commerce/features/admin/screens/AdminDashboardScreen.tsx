@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
+import { AdminLayout } from '~/components/admin/AdminLayout';
+import { AdminMetricCard } from '~/components/admin/AdminMetricCard';
 import { AppCard } from '~/components/ui/AppCard';
 import { EmptyBlock, LoadingBlock } from '~/components/ui/StateBlocks';
 import {
@@ -48,69 +50,111 @@ export default function AdminDashboardScreen() {
   }, [load]);
 
   return (
-    <>
+    <AdminLayout>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
-        className="flex-1 bg-[#F4F4F4]"
+        style={{ flex: 1, backgroundColor: '#0A0A0F' }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-        <View className="px-4 pb-10 pt-5">
-          <View className="mb-3">
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Dashboard vận hành</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              Theo dõi nhanh doanh thu, hiệu suất bán và tồn kho.
+        <View style={{ paddingBottom: 40 }}>
+          <View style={{ marginBottom: 32 }}>
+            <Text style={{ fontSize: 32, fontWeight: '700', color: '#F0F0F5', marginBottom: 8 }}>
+              Bảng điều khiển
+            </Text>
+            <Text style={{ fontSize: 14, color: '#8888A0' }}>
+              Thông tin thời gian thực về doanh thu, hiệu suất và tồn kho
             </Text>
           </View>
           {loading ? (
-            <LoadingBlock label="Đang tải báo cáo..." />
+            <LoadingBlock label="Đang tải dữ liệu bảng điều khiển..." />
           ) : !summary ? (
-            <EmptyBlock title="Không có dữ liệu" hint="Chưa thể tải dữ liệu dashboard." />
+            <EmptyBlock title="Không có dữ liệu" hint="Không thể tải số liệu bảng điều khiển." />
           ) : (
             <>
-              <View className="mb-3 flex-row flex-wrap gap-3">
-                <MetricCard label="Tổng đơn" value={String(summary.totalOrders)} />
-                <MetricCard label="Doanh thu" value={formatCurrency(summary.revenue)} />
-              </View>
-              <View className="mb-3 flex-row flex-wrap gap-3">
-                <MetricCard label="Sản phẩm active" value={String(summary.activeProducts)} />
-                <MetricCard label="Variant sắp hết" value={String(summary.lowStockVariants)} />
+              <View style={{ 
+                display: 'grid' as any, 
+                gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))' as any,
+                gap: 20,
+                marginBottom: 32 
+              }}>
+                <AdminMetricCard 
+                  label="Tổng đơn hàng" 
+                  value={summary.totalOrders}
+                  icon="cart"
+                  color="#6C63FF"
+                />
+                <AdminMetricCard 
+                  label="Doanh thu" 
+                  value={formatCurrency(summary.revenue)}
+                  icon="trending-up"
+                  color="#3ECF8E"
+                />
+                <AdminMetricCard 
+                  label="Sản phẩm đang bán" 
+                  value={summary.activeProducts}
+                  icon="cube"
+                  color="#3B82F6"
+                />
+                <AdminMetricCard 
+                  label="Biến thể sắp hết" 
+                  value={summary.lowStockVariants}
+                  icon="alert-circle"
+                  color="#F59E0B"
+                />
               </View>
 
-              <AppCard className="mb-3">
-                <Text className="text-[16px] font-semibold text-[#1F2937]">Doanh thu 7 ngày</Text>
+              <View style={{ 
+                backgroundColor: '#13131A', 
+                borderWidth: 1, 
+                borderColor: '#2A2A3A', 
+                borderRadius: 16, 
+                padding: 24,
+                marginBottom: 24 
+              }}>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#F0F0F5', marginBottom: 16 }}>
+                  Xu hướng doanh thu 7 ngày
+                </Text>
                 <LineChart rows={revenueRows} />
-                <View className="mt-3 gap-2">
+                <View style={{ marginTop: 20, gap: 12 }}>
                   {revenueRows.map((row) => (
-                    <View key={row.day} className="flex-row items-center justify-between gap-3">
-                      <Text className="flex-1 text-[13px] text-[#6B7280]">{row.day}</Text>
-                      <Text className="text-right text-[13px] font-semibold text-[#1F2937]">
+                    <View key={row.day} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text style={{ flex: 1, fontSize: 13, color: '#8888A0' }}>{row.day}</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: '#F0F0F5' }}>
                         {formatCurrency(row.revenue)} · {row.orders} đơn
                       </Text>
                     </View>
                   ))}
                 </View>
-              </AppCard>
+              </View>
 
-              <AppCard>
-                <Text className="text-[16px] font-semibold text-[#1F2937]">Top sản phẩm</Text>
+              <View style={{ 
+                backgroundColor: '#13131A', 
+                borderWidth: 1, 
+                borderColor: '#2A2A3A', 
+                borderRadius: 16, 
+                padding: 24 
+              }}>
+                <Text style={{ fontSize: 18, fontWeight: '600', color: '#F0F0F5', marginBottom: 16 }}>
+                  Sản phẩm bán chạy
+                </Text>
                 <BarChart rows={topProducts} />
-                <View className="mt-3 gap-2">
+                <View style={{ marginTop: 20, gap: 12 }}>
                   {topProducts.map((row, idx) => (
-                    <View key={row.productId} className="flex-row items-center justify-between gap-3">
-                      <Text className="flex-1 text-[13px] text-[#1F2937]">
+                    <View key={row.productId} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Text style={{ flex: 1, fontSize: 14, color: '#F0F0F5' }}>
                         {idx + 1}. {row.name}
                       </Text>
-                      <Text className="text-right text-[12px] text-[#6B7280]">
+                      <Text style={{ fontSize: 13, color: '#8888A0' }}>
                         {row.quantity} · {formatCurrency(row.revenue)}
                       </Text>
                     </View>
                   ))}
                 </View>
-              </AppCard>
+              </View>
             </>
           )}
         </View>
       </ScrollView>
-    </>
+    </AdminLayout>
   );
 }
 
@@ -122,7 +166,7 @@ function LineChart({ rows }: { rows: { day: string; revenue: number; orders: num
     y: 100 - (r.revenue / max) * 100,
   }));
   return (
-    <View className="mt-3 h-28 rounded-[14px] bg-[#F8FAFC] p-2">
+    <View style={{ height: 120, borderRadius: 12, backgroundColor: '#1C1C28', padding: 12, position: 'relative' }}>
       {points.slice(0, -1).map((p, idx) => {
         const n = points[idx + 1];
         const dx = n.x - p.x;
@@ -137,8 +181,8 @@ function LineChart({ rows }: { rows: { day: string; revenue: number; orders: num
               left: `${p.x}%`,
               top: `${p.y}%`,
               width: `${len}%`,
-              height: 2,
-              backgroundColor: '#F97316',
+              height: 3,
+              backgroundColor: '#6C63FF',
               transform: [{ rotate: `${angle}deg` }],
             }}
           />
@@ -147,8 +191,19 @@ function LineChart({ rows }: { rows: { day: string; revenue: number; orders: num
       {points.map((p, idx) => (
         <View
           key={`dot-${rows[idx]?.day ?? idx}`}
-          style={{ position: 'absolute', left: `${p.x}%`, top: `${p.y}%` }}
-          className="h-2.5 w-2.5 -translate-x-1 -translate-y-1 rounded-full bg-[#F97316]"
+          style={{ 
+            position: 'absolute', 
+            left: `${p.x}%`, 
+            top: `${p.y}%`,
+            width: 10,
+            height: 10,
+            marginLeft: -5,
+            marginTop: -5,
+            borderRadius: 5,
+            backgroundColor: '#6C63FF',
+            borderWidth: 2,
+            borderColor: '#13131A'
+          }}
         />
       ))}
     </View>
@@ -163,30 +218,24 @@ function BarChart({
   if (!rows.length) return null;
   const max = Math.max(...rows.map((r) => r.revenue), 1);
   return (
-    <View className="mt-3 flex-row items-end gap-2 rounded-[14px] bg-[#F8FAFC] p-3">
+    <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12, borderRadius: 12, backgroundColor: '#1C1C28', padding: 16, height: 120 }}>
       {rows.map((row) => {
-        const h = Math.max(8, Math.round((row.revenue / max) * 90));
+        const h = Math.max(12, Math.round((row.revenue / max) * 80));
         return (
-          <View key={row.productId} className="flex-1 items-center">
+          <View key={row.productId} style={{ flex: 1, alignItems: 'center' }}>
             <View
-              style={{ height: h }}
-              className="w-full rounded-t-[8px] bg-[#F97316]"
+              style={{ 
+                height: h, 
+                width: '100%',
+                borderTopLeftRadius: 8,
+                borderTopRightRadius: 8,
+                background: 'linear-gradient(180deg, #6C63FF 0%, #5951E6 100%)' as any,
+                backgroundColor: '#6C63FF'
+              }}
             />
-            <Text numberOfLines={1} className="mt-1 text-[10px] text-[#6B7280]">
-              {row.name}
-            </Text>
           </View>
         );
       })}
-    </View>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="min-w-[47%] flex-1 rounded-[18px] bg-white p-3 shadow-sm">
-      <Text className="text-[11px] uppercase tracking-[1px] text-[#9CA3AF]">{label}</Text>
-      <Text className="mt-1 text-[16px] font-bold text-[#1F2937]">{value}</Text>
     </View>
   );
 }

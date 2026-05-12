@@ -1,8 +1,11 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { Alert, Image, TextInput, TouchableOpacity, View, ActionSheetIOS, Platform } from 'react-native';
+import { Alert, Image, TextInput, TouchableOpacity, View, ActionSheetIOS, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { useState, useEffect } from 'react';
 import { Logo } from '../Logo';
+import { fetchCurrentUser } from '~/lib/api/users';
+import { getAccessToken } from '~/lib/api/token';
 
 type Props = {
   searchValue?: string;
@@ -13,6 +16,26 @@ type Props = {
 
 export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onVisualSearch }: Props) {
   const insets = useSafeAreaInsets();
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [avatarLoading, setAvatarLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserAvatar = async () => {
+      try {
+        const token = await getAccessToken();
+        if (token) {
+          const user = await fetchCurrentUser();
+          setUserAvatar(user.avatar);
+        }
+      } catch (error) {
+        // Silently fail - user might not be logged in
+        console.log('Could not load user avatar:', error);
+      } finally {
+        setAvatarLoading(false);
+      }
+    };
+    void loadUserAvatar();
+  }, []);
   
   const handleVisualSearch = async () => {
     // Request permissions first
@@ -92,18 +115,34 @@ export function HomeHeader({ searchValue, onSearchChange, onSubmitSearch, onVisu
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <Logo size="medium" showText={true} />
 
-        <Image
-          source={{
-            uri: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=240&q=60',
-          }}
+        <View
           style={{ 
             height: 44, 
             width: 44, 
             borderRadius: 9999,
             borderWidth: 2,
             borderColor: '#2A2A3A',
+            backgroundColor: '#1C1C28',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
           }}
-        />
+        >
+          {avatarLoading ? (
+            <ActivityIndicator size="small" color="#6C63FF" />
+          ) : userAvatar ? (
+            <Image
+              source={{ uri: userAvatar }}
+              style={{ 
+                height: 44, 
+                width: 44,
+              }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons name="person" size={24} color="#8888A0" />
+          )}
+        </View>
       </View>
 
       <View 

@@ -20,7 +20,13 @@ export default function AddressIdLayout() {
         },
       }}
     >
-      <Stack.Screen name="edit" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="edit" 
+        options={{ 
+          headerShown: false,
+          title: 'Chỉnh sửa địa chỉ'
+        }} 
+      />
     </Stack>
   );
 }

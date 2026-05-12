@@ -40,7 +40,8 @@ function RootStack({ hasSeenOnboarding }: { hasSeenOnboarding: boolean }) {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="product" options={{ headerShown: false }} />
-        <Stack.Screen name="admin" options={{ headerShown: true }} />
+        <Stack.Screen name="order" options={{ headerShown: false, title: 'Chi tiết đơn hàng' }} />
+        <Stack.Screen name="admin" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </View>

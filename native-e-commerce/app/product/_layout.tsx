@@ -19,7 +19,13 @@ export default function ProductLayout() {
         },
       }}
     >
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="[id]" 
+        options={{ 
+          headerShown: false,
+          title: 'Chi tiết sản phẩm'
+        }} 
+      />
     </Stack>
   );
 }

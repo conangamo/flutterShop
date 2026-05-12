@@ -1,8 +1,10 @@
 import { Stack, useFocusEffect, useRouter } from 'expo-router';
 import { useEffect, useState, useCallback } from 'react';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import addressStorage from '~/features/account/services/addressStorage';
 import { Address } from '@/lib/types/models';
+import { AddressCard } from '~/components/address/AddressCard';
 
 export default function AddressesScreen() {
   const router = useRouter();
@@ -43,32 +45,32 @@ export default function AddressesScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <View className="flex-1 bg-bg-primary p-4">
         <Pressable
-          className="mb-4 items-center rounded-2xl bg-accent py-3.5"
+          className="mb-5 items-center rounded-2xl bg-accent py-4"
+          style={{
+            shadowColor: '#6C63FF',
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
+            elevation: 6,
+          }}
           onPress={() => router.push('/addresses/new')}>
-          <Text className="font-bold text-white text-[15px]">Thêm địa chỉ mới</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Ionicons name="add-circle-outline" size={22} color="#FFFFFF" />
+            <Text className="font-bold text-white text-[16px]">Thêm địa chỉ mới</Text>
+          </View>
         </Pressable>
 
         <FlatList
           data={items}
           keyExtractor={(i) => i.id}
+          contentContainerStyle={{ gap: 14 }}
           renderItem={({ item }) => (
-            <View className="mb-3 rounded-2xl border border-semantic-border bg-bg-surface p-4">
-              <Text className="font-semibold text-text-primary">{item.name}</Text>
-              <Text className="text-sm text-text-secondary">{item.phone}</Text>
-              <Text className="mt-1 text-text-secondary">{item.address}</Text>
-              <View className="mt-3 flex-row gap-3">
-                <Pressable
-                  className="rounded-xl bg-accent px-4 py-2"
-                  onPress={() => router.push(`/addresses/${item.id}/edit`)}>
-                  <Text className="text-white font-semibold">Sửa</Text>
-                </Pressable>
-                <Pressable
-                  className="rounded-xl bg-accent-coral px-4 py-2"
-                  onPress={() => onDelete(item.id)}>
-                  <Text className="text-white font-semibold">Xóa</Text>
-                </Pressable>
-              </View>
-            </View>
+            <AddressCard
+              address={item}
+              showActions
+              onEdit={() => router.push(`/addresses/${item.id}/edit`)}
+              onDelete={() => onDelete(item.id)}
+            />
           )}
         />
       </View>

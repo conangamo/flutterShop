@@ -333,7 +333,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'nike-air-max-270-41', 'nike-air-max-270', 'NIKE-AM270-41', '41', 'Black/White', 3200000, 10, 2),
   (2, 'nike-air-max-270-42', 'nike-air-max-270', 'NIKE-AM270-42', '42', 'Black/White', 3200000, 10, 3),
   (2, 'nike-air-max-270-43', 'nike-air-max-270', 'NIKE-AM270-43', '43', 'Black/White', 3200000, 10, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- Adidas Ultraboost 22 variants
 INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price, stock, position) VALUES
@@ -342,7 +342,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'adidas-ub22-41', 'adidas-ultraboost-22', 'ADIDAS-UB22-41', '41', 'Core Black', 4200000, 9, 2),
   (2, 'adidas-ub22-42', 'adidas-ultraboost-22', 'ADIDAS-UB22-42', '42', 'Core Black', 4200000, 9, 3),
   (2, 'adidas-ub22-43', 'adidas-ultraboost-22', 'ADIDAS-UB22-43', '43', 'Core Black', 4200000, 9, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- Nike Air Jordan 1 Mid variants
 INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price, stock, position) VALUES
@@ -351,7 +351,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'nike-aj1-41', 'nike-air-jordan-1-mid', 'NIKE-AJ1-41', '41', 'Chicago', 3800000, 12, 2),
   (2, 'nike-aj1-42', 'nike-air-jordan-1-mid', 'NIKE-AJ1-42', '42', 'Chicago', 3800000, 12, 3),
   (2, 'nike-aj1-43', 'nike-air-jordan-1-mid', 'NIKE-AJ1-43', '43', 'Chicago', 3800000, 12, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- Adidas Stan Smith variants
 INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price, stock, position) VALUES
@@ -360,7 +360,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'adidas-ss-41', 'adidas-stan-smith', 'ADIDAS-SS-41', '41', 'White/Green', 2400000, 16, 2),
   (2, 'adidas-ss-42', 'adidas-stan-smith', 'ADIDAS-SS-42', '42', 'White/Green', 2400000, 16, 3),
   (2, 'adidas-ss-43', 'adidas-stan-smith', 'ADIDAS-SS-43', '43', 'White/Green', 2400000, 16, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- Puma RS-X variants
 INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price, stock, position) VALUES
@@ -369,7 +369,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'puma-rsx-41', 'puma-rs-x', 'PUMA-RSX-41', '41', 'Multi', 2800000, 8, 2),
   (2, 'puma-rsx-42', 'puma-rs-x', 'PUMA-RSX-42', '42', 'Multi', 2800000, 8, 3),
   (2, 'puma-rsx-43', 'puma-rs-x', 'PUMA-RSX-43', '43', 'Multi', 2800000, 8, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- Nike React Infinity Run variants
 INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price, stock, position) VALUES
@@ -378,7 +378,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'nike-react-41', 'nike-react-infinity-run', 'NIKE-REACT-41', '41', 'Blue', 3600000, 11, 2),
   (2, 'nike-react-42', 'nike-react-infinity-run', 'NIKE-REACT-42', '42', 'Blue', 3600000, 11, 3),
   (2, 'nike-react-43', 'nike-react-infinity-run', 'NIKE-REACT-43', '43', 'Blue', 3600000, 11, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- Adidas NMD R1 variants
 INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price, stock, position) VALUES
@@ -387,7 +387,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'adidas-nmd-41', 'adidas-nmd-r1', 'ADIDAS-NMD-41', '41', 'Black/Red', 3400000, 14, 2),
   (2, 'adidas-nmd-42', 'adidas-nmd-r1', 'ADIDAS-NMD-42', '42', 'Black/Red', 3400000, 14, 3),
   (2, 'adidas-nmd-43', 'adidas-nmd-r1', 'ADIDAS-NMD-43', '43', 'Black/Red', 3400000, 14, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- Puma Suede Classic variants
 INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price, stock, position) VALUES
@@ -396,7 +396,7 @@ INSERT INTO product_variants (store_id, id, product_id, sku, size, color, price,
   (2, 'puma-suede-41', 'puma-suede-classic', 'PUMA-SUEDE-41', '41', 'Navy', 2200000, 13, 2),
   (2, 'puma-suede-42', 'puma-suede-classic', 'PUMA-SUEDE-42', '42', 'Navy', 2200000, 13, 3),
   (2, 'puma-suede-43', 'puma-suede-classic', 'PUMA-SUEDE-43', '43', 'Navy', 2200000, 13, 4)
-ON CONFLICT (store_id, id) DO NOTHING;
+ON CONFLICT (store_id, id) DO UPDATE SET stock = EXCLUDED.stock;
 
 -- ============================================
 -- PRODUCT IMAGES (Additional gallery images)

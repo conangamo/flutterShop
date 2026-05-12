@@ -8,9 +8,31 @@ from app.core.deps import get_current_user, get_store_id
 from app.core.exceptions import AppError
 from app.db.models import User as UserRow
 from app.features.orders import service as orders_svc
-from app.features.orders.schemas import OrderCreateIn, OrderStatusUpdateIn
+from app.features.orders.schemas import OrderCreateIn, OrderStatusUpdateIn, VoucherValidateIn
 
 router = APIRouter()
+
+
+@router.get("/available-vouchers")
+def list_available_vouchers(
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    current: UserRow = Depends(get_current_user),
+) -> list[dict]:
+    """List all active vouchers available for the customer."""
+    return orders_svc.list_available_vouchers(db, store_id)
+
+
+@router.post("/validate-voucher")
+def validate_voucher(
+    payload: VoucherValidateIn,
+    db: Session = Depends(get_db),
+    store_id: Annotated[int, Depends(get_store_id)] = 1,
+    current: UserRow = Depends(get_current_user),
+) -> dict:
+    """Validate a voucher code against the current cart subtotal."""
+    result = orders_svc.validate_voucher(db, store_id, payload)
+    return result.model_dump(by_alias=True)
 
 
 @router.get("/")

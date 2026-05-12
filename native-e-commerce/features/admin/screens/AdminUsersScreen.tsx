@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
+import { AdminLayout } from '~/components/admin/AdminLayout';
 import { AppInput } from '~/components/ui/AppInput';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
 import { adminListUsers, adminSetUserRole, adminSetUserStatus, type AdminUserRow } from '~/lib/api/admin';
@@ -64,54 +65,56 @@ export default function AdminUsersScreen() {
   };
 
   return (
-    <>
+    <AdminLayout>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
-        className="flex-1 bg-[#F4F4F4]"
+        style={{ flex: 1, backgroundColor: '#0A0A0F' }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-        <View className="px-4 pb-10 pt-5">
-          <View className="mb-3">
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Người dùng</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              Tìm kiếm nhanh, đổi role và khoá/mở tài khoản an toàn.
+        <View style={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 20 }}>
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontSize: 32, fontWeight: '700', color: '#F0F0F5', marginBottom: 8 }}>
+              Quản lý người dùng
+            </Text>
+            <Text style={{ fontSize: 14, color: '#8888A0' }}>
+              Tìm kiếm, quản lý vai trò và khóa/mở khóa tài khoản người dùng
             </Text>
           </View>
           <AppInput
             label="Tìm theo tên hoặc email"
             value={q}
             onChangeText={setQ}
-            placeholder="Nhập từ khoá..."
+            placeholder="Nhập từ khóa..."
             onSubmitEditing={() => void load('refresh')}
           />
           {loading ? (
-            <LoadingBlock label="Đang tải danh sách người dùng..." />
+            <LoadingBlock label="Đang tải người dùng..." />
           ) : error ? (
             <ErrorBlock message={error} onRetry={() => void load('refresh')} />
           ) : users.length === 0 ? (
-            <EmptyBlock title="Không có user" hint="Chưa có người dùng phù hợp." />
+            <EmptyBlock title="Không có người dùng" hint="Không có người dùng phù hợp với tìm kiếm của bạn." />
           ) : (
-            <View className="mt-3 gap-3">
+            <View style={{ marginTop: 24, gap: 16 }}>
               {users.map((u) => (
-                <View key={u.id} className="rounded-[20px] bg-white p-4 shadow-sm">
-                  <Text className="text-[15px] font-semibold text-[#1F2937]" numberOfLines={1}>
+                <View key={u.id} style={{ backgroundColor: '#13131A', borderWidth: 1, borderColor: '#2A2A3A', borderRadius: 16, padding: 20 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#F0F0F5' }} numberOfLines={1}>
                     {u.name}
                   </Text>
-                  <Text className="text-[12px] text-[#6B7280]" numberOfLines={1}>
+                  <Text style={{ fontSize: 13, color: '#8888A0', marginTop: 4 }} numberOfLines={1}>
                     {u.email}
                   </Text>
-                  <View className="mt-2 flex-row items-center justify-between">
-                    <Text className="text-[12px] text-[#6B7280]">
-                      role: <Text className="font-semibold text-[#1F2937]">{u.role}</Text> ·{' '}
-                      {u.is_active ? 'active' : 'inactive'}
+                  <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Text style={{ fontSize: 13, color: '#8888A0' }}>
+                      role: <Text style={{ fontWeight: '600', color: '#F0F0F5' }}>{u.role}</Text> ·{' '}
+                      {u.is_active ? 'hoạt động' : 'tạm ngưng'}
                     </Text>
                   </View>
-                  <View className="mt-3 flex-row flex-wrap gap-2">
-                    <Pressable onPress={() => cycleRole(u)} className="rounded-full bg-[#FFF4ED] px-3 py-2">
-                      <Text className="text-[12px] font-semibold text-[#F97316]">Đổi role</Text>
+                  <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+                    <Pressable onPress={() => cycleRole(u)} style={{ borderRadius: 9999, backgroundColor: 'rgba(108, 99, 255, 0.1)', paddingHorizontal: 16, paddingVertical: 10 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: '#6C63FF' }}>Đổi vai trò</Text>
                     </Pressable>
-                    <Pressable onPress={() => toggleActive(u)} className="rounded-full bg-[#F3F4F6] px-3 py-2">
-                      <Text className="text-[12px] font-semibold text-[#374151]">
-                        {u.is_active ? 'Khoá' : 'Mở'}
+                    <Pressable onPress={() => toggleActive(u)} style={{ borderRadius: 9999, backgroundColor: '#1C1C28', paddingHorizontal: 16, paddingVertical: 10 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: '#F0F0F5' }}>
+                        {u.is_active ? 'Khóa' : 'Mở khóa'}
                       </Text>
                     </Pressable>
                   </View>
@@ -132,7 +135,7 @@ export default function AdminUsersScreen() {
           setConfirm(null);
         }}
       />
-    </>
+    </AdminLayout>
   );
 }
 

@@ -304,3 +304,70 @@ export async function adminDashboardRevenue(days = 7): Promise<{ day: string; re
 export async function adminDashboardTopProducts(limit = 5): Promise<{ productId: string; name: string; quantity: number; revenue: number }[]> {
   return apiGet(`admin/dashboard/top-products?limit=${limit}`);
 }
+
+export type AdminCategoryRow = {
+  id: string;
+  label: string;
+  slug: string;
+  image: string | null;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function adminListCategories(): Promise<AdminCategoryRow[]> {
+  return apiGet<AdminCategoryRow[]>('admin/categories');
+}
+
+export async function adminCreateCategory(payload: {
+  id: string;
+  label: string;
+  slug: string;
+  image?: string;
+  parentId?: string;
+}): Promise<{ id: string }> {
+  return apiPost<{ id: string }>('admin/categories', payload);
+}
+
+export async function adminUpdateCategory(
+  categoryId: string,
+  payload: {
+    label?: string;
+    slug?: string;
+    image?: string;
+    parentId?: string;
+  }
+): Promise<{ id: string }> {
+  return apiPatch<{ id: string }>(`admin/categories/${encodeURIComponent(categoryId)}`, payload);
+}
+
+export async function adminDeleteCategory(categoryId: string): Promise<{ id: string; deleted: boolean }> {
+  return apiDelete<{ id: string; deleted: boolean }>(`admin/categories/${encodeURIComponent(categoryId)}`);
+}
+
+export async function adminUploadMedia(
+  file: { uri: string; type: string; name: string },
+  folder: string
+): Promise<{ url: string; path: string }> {
+  const formData = new FormData();
+  formData.append('file', {
+    uri: file.uri,
+    type: file.type,
+    name: file.name,
+  } as any);
+  formData.append('folder', folder);
+
+  const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/admin/media/upload`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Upload failed');
+  }
+
+  return response.json();
+}

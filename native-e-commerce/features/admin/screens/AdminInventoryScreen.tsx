@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 
+import { AdminLayout } from '~/components/admin/AdminLayout';
 import { useToast } from '~/components/ToastProvider';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
 import {
@@ -123,9 +124,9 @@ export default function AdminInventoryScreen() {
   });
 
   return (
-    <>
+    <AdminLayout>
       <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-[#F4F4F4]">
+      <View style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
         <InventoryToolbar
           activeFilter={activeFilter}
           onCreate={() => setShowCreate(true)}
@@ -138,13 +139,15 @@ export default function AdminInventoryScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => load('refresh')}
-              tintColor="#F97316"
+              tintColor="#6C63FF"
             />
           }>
-          <View className="mb-3">
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Sản phẩm & tồn kho</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              Quản lý trạng thái bán, biến thể và số lượng tồn theo từng sản phẩm.
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontSize: 32, fontWeight: '700', color: '#F0F0F5', marginBottom: 8 }}>
+              Quản lý kho hàng
+            </Text>
+            <Text style={{ fontSize: 14, color: '#8888A0' }}>
+              Quản lý trạng thái sản phẩm, biến thể và mức tồn kho
             </Text>
           </View>
           {loading ? (
@@ -152,9 +155,9 @@ export default function AdminInventoryScreen() {
           ) : loadError ? (
             <ErrorBlock message={loadError} onRetry={() => void load('refresh')} />
           ) : visibleProducts.length === 0 ? (
-            <EmptyBlock title="Không có sản phẩm phù hợp" hint="Thử đổi bộ lọc hoặc tạo sản phẩm mới." />
+            <EmptyBlock title="Không có sản phẩm phù hợp" hint="Thử thay đổi bộ lọc hoặc tạo sản phẩm mới." />
           ) : (
-            <View className="gap-3">
+            <View style={{ gap: 16 }}>
               {visibleProducts.map((p) => {
                 const isActive = p.isActive ?? true;
                 const variants = selectedProductId === p.id ? (selectedProductDetail?.variants ?? []) : [];
@@ -236,6 +239,6 @@ export default function AdminInventoryScreen() {
           setConfirm(null);
         }}
       />
-    </>
+    </AdminLayout>
   );
 }

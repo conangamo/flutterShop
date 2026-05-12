@@ -92,12 +92,15 @@ export default function OrderDetailScreen() {
 
   const handleCancel = async () => {
     if (!order) return;
+    console.log('[OrderDetailScreen] Cancelling order:', { orderId: order.id, orderCode: order.code });
     setCancelling(true);
     try {
       const updated = await cancelOrder(order.id);
+      console.log('[OrderDetailScreen] Order cancelled successfully:', updated);
       setOrder(updated);
       addToast('success', L.common.success, 'Đã huỷ đơn hàng.');
     } catch (e) {
+      console.error('[OrderDetailScreen] Cancel order failed:', e);
       const msg = e instanceof ApiError ? resolveApiError(e, locale) : L.errors.orderLoadFailed;
       addToast('error', L.common.error, msg);
     } finally {
@@ -151,13 +154,21 @@ export default function OrderDetailScreen() {
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => load('refresh')} tintColor="#6C63FF" />
         }>
-        <View className="mt-3 rounded-[28px] bg-bg-surface border border-semantic-border p-4 mx-4">
-          <View className="flex-row items-center justify-between">
-            <View>
-              <Text className="text-[16px] font-bold text-text-primary">#{order.code}</Text>
+        <View className="mt-3 rounded-[28px] bg-bg-surface border border-semantic-border px-5 py-4 mx-4">
+          <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text className="text-[16px] font-bold text-text-primary" numberOfLines={1}>#{order.code}</Text>
               <Text className="mt-1 text-[12px] text-text-secondary">{formatDate(order.date)}</Text>
             </View>
-            <View className={`rounded-full px-3 py-1.5 border ${badge.bg} ${badge.border}`}>
+            <View 
+              className={`rounded-full border ${badge.bg} ${badge.border}`}
+              style={{ 
+                paddingHorizontal: 12, 
+                paddingVertical: 6,
+                flexShrink: 0,
+                alignSelf: 'flex-start'
+              }}
+            >
               <Text className={`text-[12px] font-semibold ${badge.text}`}>
                 {order.status === 'pending' ? 'Chờ xử lý' : 
                  order.status === 'processing' ? 'Đang xử lý' :

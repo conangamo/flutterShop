@@ -190,7 +190,7 @@ function OrderCard({ order, index, onPress }: { order: OrderSummary; index: numb
   return (
     <Animated.View
       entering={FadeInDown.duration(380).delay(index * 60)}
-      className="mx-4 mb-3 rounded-2xl bg-bg-surface border border-semantic-border overflow-hidden"
+      className="mb-3 rounded-2xl bg-bg-surface border border-semantic-border overflow-hidden"
       style={{
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
@@ -199,25 +199,27 @@ function OrderCard({ order, index, onPress }: { order: OrderSummary; index: numb
         elevation: 6,
       }}
     >
-      <Pressable onPress={onPress} className="p-4">
+      <Pressable onPress={onPress} className="px-5 py-4">
         {/* ── ROW 1: Order ID + Status Badge ── */}
-        <View className="flex-row items-center justify-between mb-3">
-          <View>
+        <View className="flex-row items-center justify-between mb-3" style={{ gap: 12 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
             <Text className="text-text-secondary text-xs font-semibold uppercase tracking-widest mb-0.5">
               Đơn hàng
             </Text>
-            <Text className="text-text-primary text-[15px] font-bold">
+            <Text className="text-text-primary text-[15px] font-bold" numberOfLines={1}>
               #{order.code}
             </Text>
           </View>
           <View 
             style={{
+              alignSelf: 'flex-start',
               backgroundColor: badge.bg,
               borderColor: badge.border,
               borderWidth: 1,
-              paddingVertical: 4,
-              paddingHorizontal: 10,
+              paddingVertical: 6,
+              paddingHorizontal: 12,
               borderRadius: 16,
+              flexShrink: 0,
             }}
           >
             <Text style={{ fontSize: 12, fontWeight: 'bold', color: badge.text }}>

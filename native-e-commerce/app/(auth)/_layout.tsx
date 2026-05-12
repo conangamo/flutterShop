@@ -7,9 +7,9 @@ export default function AuthLayout() {
         headerShown: false,
         // animationEnabled: true,
       }}>
-      <Stack.Screen name="login" />
-      <Stack.Screen name="signup" />
-      <Stack.Screen name="forgot" />
+      <Stack.Screen name="login" options={{ title: 'Đăng nhập' }} />
+      <Stack.Screen name="signup" options={{ title: 'Đăng ký' }} />
+      <Stack.Screen name="forgot" options={{ title: 'Quên mật khẩu' }} />
     </Stack>
   );
 }

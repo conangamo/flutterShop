@@ -20,9 +20,27 @@ export default function AddressesLayout() {
         },
       }}
     >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="new" options={{ headerShown: false }} />
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="index" 
+        options={{ 
+          headerShown: false,
+          title: 'Địa chỉ'
+        }} 
+      />
+      <Stack.Screen 
+        name="new" 
+        options={{ 
+          headerShown: false,
+          title: 'Thêm địa chỉ mới'
+        }} 
+      />
+      <Stack.Screen 
+        name="[id]" 
+        options={{ 
+          headerShown: false,
+          title: 'Chi tiết địa chỉ'
+        }} 
+      />
     </Stack>
   );
 }

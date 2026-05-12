@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
+import { AdminLayout } from '~/components/admin/AdminLayout';
 import { AppInput } from '~/components/ui/AppInput';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
 import { adminCreatePromo, adminListPromos, type PromoRow } from '~/lib/api/admin';
@@ -57,50 +58,54 @@ export default function AdminPromosScreen() {
   };
 
   return (
-    <>
+    <AdminLayout>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView
-        className="flex-1 bg-[#F4F4F4]"
+        style={{ flex: 1, backgroundColor: '#0A0A0F' }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-        <View className="px-4 pb-10 pt-5">
-          <View className="mb-3">
-            <Text className="text-[20px] font-semibold text-[#1F2937]">Khuyến mãi</Text>
-            <Text className="mt-1 text-[13px] text-[#6B7280]">
-              Tạo và kiểm soát promo code nhanh cho chiến dịch bán hàng.
+        <View style={{ paddingHorizontal: 16, paddingBottom: 40, paddingTop: 20 }}>
+          <View style={{ marginBottom: 24 }}>
+            <Text style={{ fontSize: 32, fontWeight: '700', color: '#F0F0F5', marginBottom: 8 }}>
+              Quản lý khuyến mãi
+            </Text>
+            <Text style={{ fontSize: 14, color: '#8888A0' }}>
+              Tạo và quản lý mã khuyến mãi cho các chiến dịch bán hàng
             </Text>
           </View>
-          <View className="rounded-[20px] bg-white p-4 shadow-sm">
-            <Text className="text-[15px] font-semibold text-[#1F2937]">Tạo promo code nhanh</Text>
-            <View className="mt-3 gap-2">
-              <AppInput value={code} onChangeText={setCode} label="Code" placeholder="VD: SALE50K" />
+          <View style={{ backgroundColor: '#13131A', borderWidth: 1, borderColor: '#2A2A3A', borderRadius: 16, padding: 20, marginBottom: 24 }}>
+            <Text style={{ fontSize: 18, fontWeight: '600', color: '#F0F0F5', marginBottom: 16 }}>
+              Tạo mã khuyến mãi
+            </Text>
+            <View style={{ gap: 16 }}>
+              <AppInput value={code} onChangeText={setCode} label="Mã" placeholder="VD: SALE50K" />
               <AppInput
                 value={discountValue}
                 onChangeText={(v) => setDiscountValue(v.replace(/[^0-9]/g, ''))}
-                label="Giảm cố định (VND)"
+                label="Giảm giá cố định (VND)"
                 keyboardType="numeric"
               />
-              <Pressable onPress={createPromo} className="rounded-[14px] bg-[#F97316] py-3">
-                <Text className="text-center text-[13px] font-semibold text-white">Tạo promo</Text>
+              <Pressable onPress={createPromo} style={{ borderRadius: 12, backgroundColor: '#6C63FF', paddingVertical: 14 }}>
+                <Text style={{ textAlign: 'center', fontSize: 14, fontWeight: '600', color: '#FFFFFF' }}>Tạo khuyến mãi</Text>
               </Pressable>
             </View>
           </View>
           {loading ? (
-            <LoadingBlock label="Đang tải promo..." />
+            <LoadingBlock label="Đang tải khuyến mãi..." />
           ) : error ? (
             <ErrorBlock message={error} onRetry={() => void load('refresh')} />
           ) : promos.length === 0 ? (
-            <EmptyBlock title="Chưa có promo" hint="Tạo promo đầu tiên để dùng cho checkout." />
+            <EmptyBlock title="Chưa có khuyến mãi" hint="Tạo mã khuyến mãi đầu tiên cho thanh toán." />
           ) : (
-            <View className="mt-3 gap-3">
+            <View style={{ gap: 16 }}>
               {promos.map((p) => (
-                <View key={p.id} className="rounded-[20px] bg-white p-4 shadow-sm">
-                  <Text className="text-[15px] font-bold text-[#1F2937]">{p.code}</Text>
-                  <Text className="mt-1 text-[12px] text-[#6B7280]">
+                <View key={p.id} style={{ backgroundColor: '#13131A', borderWidth: 1, borderColor: '#2A2A3A', borderRadius: 16, padding: 20 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '700', color: '#F0F0F5' }}>{p.code}</Text>
+                  <Text style={{ marginTop: 8, fontSize: 13, color: '#8888A0' }}>
                     {p.discountType} · {formatCurrency(p.discountValue)} · used {p.usedCount}/
                     {p.usageLimit ?? '∞'}
                   </Text>
-                  <Text className="mt-1 text-[12px] text-[#6B7280]">
-                    min order {formatCurrency(p.minOrderTotal)} · {p.isActive ? 'active' : 'inactive'}
+                  <Text style={{ marginTop: 4, fontSize: 13, color: '#8888A0' }}>
+                    đơn tối thiểu {formatCurrency(p.minOrderTotal)} · {p.isActive ? 'hoạt động' : 'tạm ngưng'}
                   </Text>
                 </View>
               ))}
@@ -108,6 +113,6 @@ export default function AdminPromosScreen() {
           )}
         </View>
       </ScrollView>
-    </>
+    </AdminLayout>
   );
 }

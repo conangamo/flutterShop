@@ -162,7 +162,7 @@ export default function AdminOrderDetailScreen() {
           <Text className="text-[16px] font-semibold text-[#1F2937]">Cập nhật trạng thái</Text>
 
           <AppInput
-            label="Tracking number"
+            label="Mã vận đơn"
             value={tracking}
             onChangeText={setTracking}
             placeholder="VD: GHN-2026-99887"

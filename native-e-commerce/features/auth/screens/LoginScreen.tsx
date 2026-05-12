@@ -187,7 +187,7 @@ export default function LoginScreen() {
                   marginBottom: 10,
                 }}
               >
-                Password
+                Mật khẩu
               </Text>
               <View
                 style={{

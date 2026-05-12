@@ -19,6 +19,9 @@ type Props = {
 
 function ProductCardBase({ product, cardWidth }: Props) {
   const router = useRouter();
+  
+  // Calculate maximum stock across all variants (size/color combinations)
+  // If any variant has stock > 0, the product is considered available
   const bestStock = (product.variants || []).reduce((max, v) => Math.max(max, v.stock || 0), 0);
   
   // Resolve the image URL properly
@@ -58,6 +61,8 @@ function ProductCardBase({ product, cardWidth }: Props) {
           )}
           
           {/* Stock Badge - Top Right */}
+          {/* Shows "Còn hàng" (In Stock) if ANY variant has stock > 0 */}
+          {/* Shows "Hết hàng" (Out of Stock) only when ALL variants have stock = 0 */}
           <View className="absolute top-2 right-2 rounded-full px-2 py-1 bg-[#13131A]/90 border border-[#2A2A3A]/80">
             {bestStock > 0 ? (
               <Text className="text-[#3ECF8E] text-[9px] font-bold">

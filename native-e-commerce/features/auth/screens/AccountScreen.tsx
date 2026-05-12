@@ -222,9 +222,12 @@ export default function AccountScreen() {
                     label={L.account.rowName}
                     onPress={() => router.push('/account/edit')}
                     rightSlot={
-                      <Text className="text-text-secondary text-sm mr-2" numberOfLines={1}>
-                        {user.name}
-                      </Text>
+                      <View className="flex-row items-center gap-2">
+                        <Text className="text-text-secondary text-sm mr-1" numberOfLines={1}>
+                          {user.name}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={16} color="#8888A0" />
+                      </View>
                     }
                   />
                   <View className="h-px bg-semantic-border mx-4" />
@@ -244,9 +247,12 @@ export default function AccountScreen() {
                     label={L.account.rowPhone}
                     onPress={() => router.push('/account/edit')}
                     rightSlot={
-                      <Text className={`text-sm mr-2 ${user.phone ? 'text-text-secondary' : 'text-text-muted'}`}>
-                        {user.phone ?? '—'}
-                      </Text>
+                      <View className="flex-row items-center gap-2">
+                        <Text className={`text-sm mr-1 ${user.phone ? 'text-text-secondary' : 'text-text-muted'}`}>
+                          {user.phone ?? '—'}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={16} color="#8888A0" />
+                      </View>
                     }
                   />
                 </Animated.View>

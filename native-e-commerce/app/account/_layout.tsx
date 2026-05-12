@@ -20,7 +20,13 @@ export default function AccountLayout() {
         },
       }}
     >
-      <Stack.Screen name="edit" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="edit" 
+        options={{ 
+          headerShown: false,
+          title: 'Chỉnh sửa tài khoản'
+        }} 
+      />
     </Stack>
   );
 }

@@ -28,7 +28,8 @@ export async function apiFetch<T = Json>(
   const { skipAuth, headers: hdrs, ...rest } = init;
   const headers = new Headers(hdrs);
   headers.set('X-Store-Id', STORE_ID);
-  if (!headers.has('Content-Type') && rest.body != null) {
+  // Only set Content-Type if body is present and not explicitly set
+  if (!headers.has('Content-Type') && rest.body != null && rest.body !== undefined) {
     headers.set('Content-Type', 'application/json');
   }
 
@@ -65,6 +66,11 @@ export async function apiFetch<T = Json>(
       details = e?.details;
     } else if (typeof body === 'string' && body.length) {
       message = body.slice(0, 160);
+    }
+    
+    // Log validation errors for debugging
+    if (res.status === 422 || code === 'validation_error') {
+      console.error('[API Client] Validation error:', { url, code, message, details, body });
     }
     
     // Handle 401 Unauthorized - clear invalid token

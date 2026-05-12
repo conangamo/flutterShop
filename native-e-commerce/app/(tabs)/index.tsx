@@ -326,16 +326,16 @@ export default function HomeScreen() {
                 overflow: 'hidden',
               }}
             >
-              {/* Faded Sneaker Background Image */}
+              {/* Sharp High-Definition Sneaker Background Image */}
               <Image
-                source={{ uri: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=500&q=60' }}
+                source={{ uri: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=90' }}
                 style={{
                   position: 'absolute',
-                  right: -50,
-                  bottom: -20,
-                  width: '100%',
-                  height: '140%',
-                  opacity: 0.08,
+                  right: -30,
+                  bottom: -10,
+                  width: '70%',
+                  height: '120%',
+                  opacity: 0.2,
                   zIndex: 1,
                 }}
                 resizeMode="contain"

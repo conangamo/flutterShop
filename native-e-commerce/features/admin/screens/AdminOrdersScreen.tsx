@@ -8,6 +8,9 @@ import {
   View,
 } from 'react-native';
 
+import { AdminLayout } from '~/components/admin/AdminLayout';
+import { AdminTable } from '~/components/admin/AdminTable';
+import { AdminStatusBadge } from '~/components/admin/AdminStatusBadge';
 import { useToast } from '~/components/ToastProvider';
 import { AppCard } from '~/components/ui/AppCard';
 import { EmptyBlock, LoadingBlock } from '~/components/ui/StateBlocks';
@@ -18,29 +21,13 @@ import type { OrderStatus } from '~/lib/types/orders';
 import { formatCurrency, formatDate } from '~/lib/utils/formatters';
 
 const STATUS_FILTERS: { id: 'all' | OrderStatus; label: string }[] = [
-  { id: 'all', label: 'Tất cả' },
+  { id: 'all', label: 'Tất cả đơn' },
   { id: 'pending', label: 'Chờ xử lý' },
   { id: 'processing', label: 'Đang xử lý' },
   { id: 'shipped', label: 'Đang giao' },
-  { id: 'delivered', label: 'Hoàn tất' },
-  { id: 'cancelled', label: 'Đã huỷ' },
+  { id: 'delivered', label: 'Đã giao' },
+  { id: 'cancelled', label: 'Đã hủy' },
 ];
-
-function statusBadge(status: OrderStatus) {
-  switch (status) {
-    case 'delivered':
-      return { bg: '#DCFCE7', fg: '#166534' };
-    case 'shipped':
-      return { bg: '#FEF3C7', fg: '#92400E' };
-    case 'processing':
-      return { bg: '#DBEAFE', fg: '#1D4ED8' };
-    case 'cancelled':
-      return { bg: '#FEE2E2', fg: '#991B1B' };
-    case 'pending':
-    default:
-      return { bg: '#F3F4F6', fg: '#374151' };
-  }
-}
 
 export default function AdminOrdersScreen() {
   const router = useRouter();
@@ -78,98 +65,128 @@ export default function AdminOrdersScreen() {
   );
 
   return (
-    <>
+    <AdminLayout>
       <Stack.Screen options={{ headerShown: false }} />
-      <View className="flex-1 bg-[#F4F4F4]">
-        <View className="px-4 pb-2 pt-4">
-          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">Operations</Text>
-          <Text className="mt-1 text-[24px] font-bold text-[#111827]">Quản lý đơn hàng</Text>
+      <View style={{ flex: 1, backgroundColor: '#0A0A0F' }}>
+        <View style={{ marginBottom: 24 }}>
+          <Text style={{ fontSize: 32, fontWeight: '700', color: '#F0F0F5', marginBottom: 8 }}>
+            Quản lý đơn hàng
+          </Text>
+          <Text style={{ fontSize: 14, color: '#8888A0' }}>
+            Theo dõi và cập nhật trạng thái đơn hàng, vận chuyển và hoàn tất
+          </Text>
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="border-b border-[#E5E7EB] bg-white px-4 py-3"
-          contentContainerStyle={{ paddingRight: 8 }}>
-          <View className="flex-row gap-2">
-            {STATUS_FILTERS.map((opt) => {
-              const active = filter === opt.id;
-              return (
-                <Pressable
-                  key={opt.id}
-                  onPress={() => setFilter(opt.id)}
-                  className={`rounded-full border px-3 py-1.5 ${
-                    active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
-                  }`}>
-                  <Text
-                    className={`text-[12px] font-semibold ${
-                      active ? 'text-[#F97316]' : 'text-[#374151]'
-                    }`}>
-                    {opt.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </ScrollView>
+
+        <View style={{ flexDirection: 'row', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+          {STATUS_FILTERS.map((opt) => {
+            const active = filter === opt.id;
+            return (
+              <Pressable
+                key={opt.id}
+                onPress={() => setFilter(opt.id)}
+                style={{
+                  paddingVertical: 10,
+                  paddingHorizontal: 20,
+                  borderRadius: 9999,
+                  borderWidth: 1,
+                  borderColor: active ? '#6C63FF' : '#2A2A3A',
+                  backgroundColor: active ? 'rgba(108, 99, 255, 0.1)' : '#13131A',
+                }}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    fontWeight: '600',
+                    color: active ? '#6C63FF' : '#8888A0',
+                  }}>
+                  {opt.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
 
         <ScrollView
-          contentContainerStyle={{ padding: 16, paddingBottom: 60 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => load('refresh')}
-              tintColor="#F97316"
+              tintColor="#6C63FF"
             />
           }>
           {loading ? (
-            <LoadingBlock label="Đang tải danh sách đơn hàng..." />
+            <LoadingBlock label="Đang tải đơn hàng..." />
           ) : orders.length === 0 ? (
-            <EmptyBlock title="Không có đơn" hint="Hiện chưa có đơn phù hợp với bộ lọc đã chọn." />
+            <EmptyBlock title="Không có đơn hàng" hint="Không có đơn hàng phù hợp với bộ lọc đã chọn." />
           ) : (
-            <View className="gap-3">
-              {orders.map((o) => {
-                const badge = statusBadge(o.status);
-                return (
-                  <AppCard key={o.id} className="p-0">
-                    <Pressable
-                      onPress={() =>
-                        router.push(`/admin/orders/${encodeURIComponent(o.id)}` as never)
-                      }
-                      className="rounded-[24px] p-4">
-                      <View className="flex-row items-start justify-between">
-                        <View>
-                          <Text className="text-[12px] uppercase tracking-[1.5px] text-[#9CA3AF]">
-                            Mã đơn
-                          </Text>
-                          <Text className="mt-1 text-[16px] font-bold text-[#1F2937]">#{o.code}</Text>
-                          <Text className="mt-1 text-[12px] text-[#6B7280]">
-                            {formatDate(o.date)} • {o.shipName}
-                          </Text>
-                        </View>
-                        <View
-                          style={{ backgroundColor: badge.bg }}
-                          className="rounded-full px-3 py-1.5">
-                          <Text
-                            style={{ color: badge.fg }}
-                            className="text-[12px] font-semibold capitalize">
-                            {o.status}
-                          </Text>
-                        </View>
-                      </View>
-                      <View className="mt-3 flex-row items-center justify-between">
-                        <Text className="text-[12px] text-[#6B7280]">{o.itemCount} sản phẩm</Text>
-                        <Text className="text-[16px] font-bold text-[#1F2937]">
-                          {formatCurrency(o.total)}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  </AppCard>
-                );
-              })}
-            </View>
+            <AdminTable
+              columns={[
+                {
+                  key: 'code',
+                  label: 'Mã đơn',
+                  width: 140,
+                  render: (o) => (
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#F0F0F5' }}>
+                      #{o.code}
+                    </Text>
+                  ),
+                },
+                {
+                  key: 'date',
+                  label: 'Ngày',
+                  width: 120,
+                  render: (o) => (
+                    <Text style={{ fontSize: 13, color: '#8888A0' }}>
+                      {formatDate(o.date)}
+                    </Text>
+                  ),
+                },
+                {
+                  key: 'shipName',
+                  label: 'Khách hàng',
+                  render: (o) => (
+                    <Text style={{ fontSize: 14, color: '#F0F0F5' }}>
+                      {o.shipName}
+                    </Text>
+                  ),
+                },
+                {
+                  key: 'itemCount',
+                  label: 'Số lượng',
+                  width: 80,
+                  align: 'center',
+                  render: (o) => (
+                    <Text style={{ fontSize: 14, color: '#8888A0' }}>
+                      {o.itemCount}
+                    </Text>
+                  ),
+                },
+                {
+                  key: 'total',
+                  label: 'Tổng tiền',
+                  width: 140,
+                  align: 'right',
+                  render: (o) => (
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: '#F0F0F5' }}>
+                      {formatCurrency(o.total)}
+                    </Text>
+                  ),
+                },
+                {
+                  key: 'status',
+                  label: 'Trạng thái',
+                  width: 140,
+                  render: (o) => <AdminStatusBadge status={o.status} />,
+                },
+              ]}
+              data={orders}
+              keyExtractor={(o) => o.id}
+              onRowPress={(o) =>
+                router.push(`/admin/orders/${encodeURIComponent(o.id)}` as never)
+              }
+            />
           )}
         </ScrollView>
       </View>
-    </>
+    </AdminLayout>
   );
 }

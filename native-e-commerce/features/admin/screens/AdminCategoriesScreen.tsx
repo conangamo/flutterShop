@@ -2,6 +2,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 
+import { AdminLayout } from '~/components/admin/AdminLayout';
 import { AppInput } from '~/components/ui/AppInput';
 import { EmptyBlock, ErrorBlock, LoadingBlock } from '~/components/ui/StateBlocks';
 import {
@@ -135,15 +136,16 @@ export default function AdminCategoriesScreen() {
   };
 
   return (
-    <ScrollView
-      className="flex-1 bg-bg-primary"
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
-      <View className="px-4 pb-10 pt-5">
-        <View className="rounded-card bg-bg-surface p-4">
-          <Text className="text-[15px] font-semibold text-text-primary">
-            {editingId ? 'Cập nhật danh mục' : 'Tạo danh mục mới'}
-          </Text>
-            <View className="mt-3 gap-2">
+    <AdminLayout>
+      <ScrollView
+        style={{ flex: 1, backgroundColor: '#0A0A0F' }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load('refresh')} />}>
+        <View style={{ padding: 20 }}>
+          <View style={{ backgroundColor: '#13131A', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#2A2A3A' }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: '#F0F0F5', marginBottom: 16 }}>
+              {editingId ? 'Cập nhật danh mục' : 'Tạo danh mục mới'}
+            </Text>
+            <View style={{ gap: 12 }}>
               {!editingId ? <AppInput value={id} onChangeText={setId} label="ID" placeholder="vd: running" /> : null}
               <AppInput value={label} onChangeText={setLabel} label="Tên danh mục" />
               <AppInput
@@ -153,19 +155,46 @@ export default function AdminCategoriesScreen() {
                 placeholder="để trống sẽ tự sinh từ tên"
               />
               <AppInput value={image} onChangeText={setImage} label="Ảnh" placeholder="https://..." />
-              <Pressable onPress={onPickAndUploadImage} className="rounded-button border border-accent py-2">
-                <Text className="text-center text-[13px] font-semibold text-accent">Upload ảnh từ máy</Text>
+              <Pressable 
+                onPress={onPickAndUploadImage} 
+                style={{ 
+                  borderRadius: 9999, 
+                  borderWidth: 1, 
+                  borderColor: '#6C63FF', 
+                  backgroundColor: 'rgba(108, 99, 255, 0.1)', 
+                  paddingVertical: 12, 
+                  paddingHorizontal: 16 
+                }}>
+                <Text style={{ textAlign: 'center', fontSize: 13, fontWeight: '600', color: '#6C63FF' }}>
+                  Upload ảnh từ máy
+                </Text>
               </Pressable>
               <AppInput value={parentId} onChangeText={setParentId} label="Parent ID (tuỳ chọn)" />
-              <View className="flex-row gap-2">
-                <Pressable onPress={onSave} className="flex-1 rounded-button bg-accent py-3">
-                  <Text className="text-center text-[13px] font-semibold text-text-primary">
+              <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                <Pressable 
+                  onPress={onSave} 
+                  style={{ 
+                    flex: 1, 
+                    borderRadius: 9999, 
+                    backgroundColor: '#6C63FF', 
+                    paddingVertical: 14 
+                  }}>
+                  <Text style={{ textAlign: 'center', fontSize: 13, fontWeight: '600', color: '#FFFFFF' }}>
                     {editingId ? 'Lưu thay đổi' : 'Tạo danh mục'}
                   </Text>
                 </Pressable>
                 {editingId ? (
-                  <Pressable onPress={resetForm} className="rounded-button border border-semantic-border px-4 py-3">
-                    <Text className="text-[13px] font-semibold text-text-secondary">Huỷ</Text>
+                  <Pressable 
+                    onPress={resetForm} 
+                    style={{ 
+                      borderRadius: 9999, 
+                      borderWidth: 1, 
+                      borderColor: '#2A2A3A', 
+                      backgroundColor: '#1C1C28', 
+                      paddingHorizontal: 20, 
+                      paddingVertical: 14 
+                    }}>
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: '#8888A0' }}>Huỷ</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -179,20 +208,48 @@ export default function AdminCategoriesScreen() {
           ) : rows.length === 0 ? (
             <EmptyBlock title="Chưa có danh mục" hint="Tạo danh mục đầu tiên để gán sản phẩm." />
           ) : (
-            <View className="mt-3 gap-3">
+            <View style={{ marginTop: 16, gap: 12 }}>
               {rows.map((r) => (
-                <View key={r.id} className="rounded-card bg-bg-surface p-4">
-                  <Text className="text-[15px] font-bold text-text-primary">{r.label}</Text>
-                  <Text className="mt-1 text-[12px] text-text-secondary">
+                <View 
+                  key={r.id} 
+                  style={{ 
+                    backgroundColor: '#13131A', 
+                    borderRadius: 16, 
+                    padding: 16, 
+                    borderWidth: 1, 
+                    borderColor: '#2A2A3A' 
+                  }}>
+                  <Text style={{ fontSize: 15, fontWeight: '700', color: '#F0F0F5' }}>{r.label}</Text>
+                  <Text style={{ marginTop: 6, fontSize: 12, color: '#8888A0' }}>
                     id: {r.id} · slug: {r.slug}
                   </Text>
-                  <Text className="mt-1 text-[12px] text-text-secondary">{r.image || '(no image)'}</Text>
-                  <View className="mt-3 flex-row gap-2">
-                    <Pressable onPress={() => onEdit(r)} className="rounded-chip border border-semantic-border px-4 py-2">
-                      <Text className="text-[12px] font-semibold text-text-secondary">Sửa</Text>
+                  <Text style={{ marginTop: 4, fontSize: 12, color: '#8888A0' }}>
+                    {r.image || '(không có ảnh)'}
+                  </Text>
+                  <View style={{ marginTop: 12, flexDirection: 'row', gap: 8 }}>
+                    <Pressable 
+                      onPress={() => onEdit(r)} 
+                      style={{ 
+                        borderRadius: 9999, 
+                        borderWidth: 1, 
+                        borderColor: '#2A2A3A', 
+                        backgroundColor: '#1C1C28', 
+                        paddingHorizontal: 16, 
+                        paddingVertical: 10 
+                      }}>
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: '#8888A0' }}>Sửa</Text>
                     </Pressable>
-                    <Pressable onPress={() => void onDelete(r.id)} className="rounded-chip border border-red-900/30 px-4 py-2">
-                      <Text className="text-[12px] font-semibold text-red-400">Xoá</Text>
+                    <Pressable 
+                      onPress={() => void onDelete(r.id)} 
+                      style={{ 
+                        borderRadius: 9999, 
+                        borderWidth: 1, 
+                        borderColor: 'rgba(239, 68, 68, 0.3)', 
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                        paddingHorizontal: 16, 
+                        paddingVertical: 10 
+                      }}>
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: '#EF4444' }}>Xoá</Text>
                     </Pressable>
                   </View>
                 </View>
@@ -201,5 +258,6 @@ export default function AdminCategoriesScreen() {
           )}
         </View>
       </ScrollView>
+    </AdminLayout>
   );
 }

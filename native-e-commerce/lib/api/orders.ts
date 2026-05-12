@@ -1,6 +1,6 @@
 import type { OrderDetail, OrderSummary } from '~/lib/types/orders';
 
-import { apiGet, apiPost } from '~/lib/api/client';
+import { apiFetch, apiGet, apiPost } from '~/lib/api/client';
 
 export type PlaceOrderPayload = {
   items: { productId: string; variantId: string | null; quantity: number }[];
@@ -39,7 +39,53 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<OrderDetai
 }
 
 export async function cancelOrder(orderId: string, note?: string): Promise<OrderDetail> {
-  return apiPost<OrderDetail>(`orders/${encodeURIComponent(orderId)}/cancel`, {
-    note,
+  console.log('[cancelOrder] Cancelling order:', { orderId, note });
+  
+  if (note) {
+    // Send full OrderStatusUpdateIn schema with status and note
+    const body = { status: 'cancelled', note };
+    console.log('[cancelOrder] Request payload with note:', body);
+    return apiPost<OrderDetail>(`orders/${encodeURIComponent(orderId)}/cancel`, body);
+  }
+  
+  // Send POST with no body (backend accepts null)
+  console.log('[cancelOrder] Request with no body');
+  return apiFetch<OrderDetail>(`orders/${encodeURIComponent(orderId)}/cancel`, {
+    method: 'POST',
   });
+}
+
+export type VoucherValidationResult = {
+  valid: boolean;
+  code: string;
+  discountType?: 'fixed' | 'percent';
+  discountValue?: number;
+  discountAmount?: number;
+  maxDiscount?: number;
+  minOrderTotal?: number;
+  errorMessage?: string;
+};
+
+export type AvailableVoucher = {
+  id: string;
+  code: string;
+  discountType: 'fixed' | 'percent';
+  discountValue: number;
+  maxDiscount?: number;
+  minOrderTotal: number;
+  usageLimit?: number;
+  usedCount: number;
+  startsAt?: string;
+  endsAt?: string;
+};
+
+export async function validateVoucher(code: string, subtotal: number): Promise<VoucherValidationResult> {
+  return apiPost<VoucherValidationResult>('orders/validate-voucher', {
+    code,
+    subtotal,
+  });
+}
+
+export async function fetchAvailableVouchers(): Promise<AvailableVoucher[]> {
+  return apiGet<AvailableVoucher[]>('orders/available-vouchers');
 }

@@ -19,7 +19,7 @@ from app.db.models import (
     Product,
     ProductVariant,
 )
-from app.features.orders.schemas import OrderCreateIn
+from app.features.orders.schemas import OrderCreateIn, VoucherValidateIn, VoucherValidateOut
 
 # Quy tắc transition status hợp lệ — chuẩn hóa lifecycle.
 ALLOWED_TRANSITIONS: dict[str, set[str]] = {
@@ -574,3 +574,130 @@ def list_orders_admin(
         }
         for o in rows
     ]
+
+
+def validate_voucher(db: Session, store_id: int, payload: VoucherValidateIn) -> VoucherValidateOut:
+    """Validate a voucher code against the current cart subtotal.
+    
+    Returns validation result with discount calculation or error message.
+    """
+    code_upper = payload.code.strip().upper()
+    now = datetime.now(timezone.utc)
+    
+    promo = db.execute(
+        select(PromoCode)
+        .where(
+            PromoCode.store_id == store_id,
+            PromoCode.code == code_upper,
+            PromoCode.is_active.is_(True),
+        )
+    ).scalar_one_or_none()
+    
+    if promo is None:
+        return VoucherValidateOut(
+            valid=False,
+            code=code_upper,
+            error_message="Mã giảm giá không hợp lệ hoặc đã bị vô hiệu hóa"
+        )
+    
+    # Check start date
+    if promo.starts_at and promo.starts_at > now:
+        return VoucherValidateOut(
+            valid=False,
+            code=code_upper,
+            error_message="Mã giảm giá chưa bắt đầu"
+        )
+    
+    # Check expiration
+    if promo.ends_at and promo.ends_at < now:
+        return VoucherValidateOut(
+            valid=False,
+            code=code_upper,
+            error_message="Mã giảm giá đã hết hạn"
+        )
+    
+    # Check usage limit
+    if promo.usage_limit is not None and promo.used_count >= promo.usage_limit:
+        return VoucherValidateOut(
+            valid=False,
+            code=code_upper,
+            error_message="Mã giảm giá đã hết lượt sử dụng"
+        )
+    
+    # Check minimum order total
+    subtotal = Decimal(str(payload.subtotal))
+    min_order = Decimal(str(promo.min_order_total))
+    if subtotal < min_order:
+        return VoucherValidateOut(
+            valid=False,
+            code=code_upper,
+            min_order_total=float(min_order),
+            error_message=f"Đơn hàng chưa đạt giá trị tối thiểu {float(min_order):,.0f} ₫"
+        )
+    
+    # Calculate discount
+    discount_amount = Decimal("0")
+    if str(promo.discount_type) == "percent":
+        discount_amount = (subtotal * Decimal(str(promo.discount_value)) / Decimal("100")).quantize(Decimal("0.01"))
+    else:
+        discount_amount = Decimal(str(promo.discount_value))
+    
+    # Apply max discount cap
+    if promo.max_discount is not None:
+        discount_amount = min(discount_amount, Decimal(str(promo.max_discount)))
+    
+    # Ensure discount doesn't exceed subtotal
+    discount_amount = max(Decimal("0"), min(discount_amount, subtotal))
+    
+    return VoucherValidateOut(
+        valid=True,
+        code=code_upper,
+        discount_type=str(promo.discount_type),
+        discount_value=float(promo.discount_value),
+        discount_amount=float(discount_amount),
+        max_discount=float(promo.max_discount) if promo.max_discount else None,
+        min_order_total=float(promo.min_order_total),
+        error_message=None
+    )
+
+
+def list_available_vouchers(db: Session, store_id: int) -> list[dict]:
+    """List all active vouchers available for customers."""
+    now = datetime.now(timezone.utc)
+    
+    promos = db.execute(
+        select(PromoCode)
+        .where(
+            PromoCode.store_id == store_id,
+            PromoCode.is_active.is_(True),
+        )
+        .order_by(PromoCode.created_at.desc())
+    ).scalars().all()
+    
+    result = []
+    for p in promos:
+        # Filter out expired or not-yet-started promos
+        if p.starts_at and p.starts_at > now:
+            continue
+        if p.ends_at and p.ends_at < now:
+            continue
+        
+        # Filter out fully used promos
+        if p.usage_limit is not None and p.used_count >= p.usage_limit:
+            continue
+        
+        result.append({
+            "id": p.id,
+            "code": p.code,
+            "discountType": str(p.discount_type),
+            "discountValue": float(p.discount_value),
+            "maxDiscount": float(p.max_discount) if p.max_discount else None,
+            "minOrderTotal": float(p.min_order_total),
+            "usageLimit": p.usage_limit,
+            "usedCount": p.used_count,
+            "startsAt": p.starts_at.replace(tzinfo=timezone.utc).isoformat() if p.starts_at else None,
+            "endsAt": p.ends_at.replace(tzinfo=timezone.utc).isoformat() if p.ends_at else None,
+        })
+    
+    return result
+

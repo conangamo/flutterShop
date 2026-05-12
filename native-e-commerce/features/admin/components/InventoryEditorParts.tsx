@@ -52,13 +52,13 @@ export function InventoryToolbar({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      className="border-b border-[#E5E7EB] bg-white px-4 py-3"
+      style={{ borderBottomWidth: 1, borderBottomColor: '#2A2A3A', backgroundColor: '#13131A', paddingHorizontal: 16, paddingVertical: 14 }}
       contentContainerStyle={{ paddingRight: 8 }}>
       <View className="flex-row gap-2">
         <Pressable
           onPress={onCreate}
-          className="rounded-full border border-[#F97316] bg-[#FFF4ED] px-3 py-2">
-          <Text className="text-[12px] font-semibold text-[#F97316]">+ Tạo sản phẩm</Text>
+          style={{ borderRadius: 9999, borderWidth: 1, borderColor: '#6C63FF', backgroundColor: 'rgba(108, 99, 255, 0.1)', paddingHorizontal: 16, paddingVertical: 10 }}>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: '#6C63FF' }}>+ Tạo sản phẩm</Text>
         </Pressable>
         {(
           [
@@ -72,10 +72,15 @@ export function InventoryToolbar({
             <Pressable
               key={opt.id}
               onPress={() => onFilterChange(opt.id)}
-              className={`rounded-full border px-3 py-2 ${
-                active ? 'border-[#F97316] bg-[#FFF4ED]' : 'border-[#E5E7EB] bg-white'
-              }`}>
-              <Text className={`text-[12px] font-semibold ${active ? 'text-[#F97316]' : 'text-[#374151]'}`}>
+              style={{
+                borderRadius: 9999,
+                borderWidth: 1,
+                borderColor: active ? '#6C63FF' : '#2A2A3A',
+                backgroundColor: active ? 'rgba(108, 99, 255, 0.1)' : '#13131A',
+                paddingHorizontal: 16,
+                paddingVertical: 10,
+              }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: active ? '#6C63FF' : '#8888A0' }}>
                 {opt.label}
               </Text>
             </Pressable>
@@ -109,15 +114,15 @@ export function CreateProductModal({
               Điền thông tin cơ bản để khởi tạo sản phẩm trong catalog.
             </Text>
             <View className="mt-4 gap-2">
-              <AppInput label="Product ID" value={form.id} onChangeText={(v) => onChange((prev) => ({ ...prev, id: v }))} />
+              <AppInput label="ID sản phẩm" value={form.id} onChangeText={(v) => onChange((prev) => ({ ...prev, id: v }))} />
               <AppInput label="Tên sản phẩm" value={form.name} onChangeText={(v) => onChange((prev) => ({ ...prev, name: v }))} />
-              <AppInput label="Slug" value={form.slug} onChangeText={(v) => onChange((prev) => ({ ...prev, slug: v }))} />
+              <AppInput label="Đường dẫn (Slug)" value={form.slug} onChangeText={(v) => onChange((prev) => ({ ...prev, slug: v }))} />
               <AppInput label="Giá cơ bản" keyboardType="numeric" value={form.basePrice} onChangeText={(v) => onChange((prev) => ({ ...prev, basePrice: v.replace(/[^0-9]/g, '') }))} />
               <AppInput label="Mô tả" value={form.description} onChangeText={(v) => onChange((prev) => ({ ...prev, description: v }))} />
             </View>
             <View className="mt-5 flex-row flex-wrap justify-end gap-2">
               <Pressable onPress={onClose} className="rounded-full bg-[#F3F4F6] px-4 py-2.5">
-                <Text className="text-[12px] font-semibold text-[#374151]">Huỷ</Text>
+                <Text className="text-[12px] font-semibold text-[#374151]">Hủy</Text>
               </Pressable>
               <Pressable onPress={onSubmit} className="rounded-full bg-[#F97316] px-4 py-2.5">
                 <Text className="text-[12px] font-semibold text-white">Tạo</Text>
@@ -180,22 +185,22 @@ export function ProductCard({
   onCreateVariant: () => void;
 }) {
   return (
-    <View className="rounded-[20px] bg-white p-4 shadow-sm">
+    <View style={{ backgroundColor: '#13131A', borderWidth: 1, borderColor: '#2A2A3A', borderRadius: 16, padding: 20, marginBottom: 16 }}>
       <View className="flex-row items-start justify-between gap-3">
         <View className="flex-1">
-          <Text className="text-[15px] font-bold text-[#1F2937]" numberOfLines={2}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: '#F0F0F5' }} numberOfLines={2}>
             {product.name}
           </Text>
-          <Text className="mt-1 text-[12px] text-[#6B7280]">
-            {formatCurrency(product.basePrice)} · Tồn tổng: {product.totalStock ?? '—'}
+          <Text style={{ marginTop: 4, fontSize: 13, color: '#8888A0' }}>
+            {formatCurrency(product.basePrice)} · Tồn kho: {product.totalStock ?? '—'}
           </Text>
         </View>
-        <Pressable onPress={onToggleSelect} className="rounded-full bg-[#F3F4F6] px-3 py-2">
-          <Text className="text-[11px] font-semibold text-[#374151]">Sửa</Text>
+        <Pressable onPress={onToggleSelect} style={{ borderRadius: 9999, backgroundColor: '#1C1C28', paddingHorizontal: 14, paddingVertical: 10 }}>
+          <Text style={{ fontSize: 12, fontWeight: '600', color: '#F0F0F5' }}>Sửa</Text>
         </Pressable>
       </View>
 
-      <View className="mt-3 gap-2">
+      <View style={{ marginTop: 16, gap: 12 }}>
         {variants.map((v) => (
           <VariantRow
             key={v.id}
@@ -243,13 +248,13 @@ function VariantRow({
 }) {
   const lowStock = variant.stock <= 5;
   return (
-    <View className="flex-row items-center gap-3 rounded-[16px] bg-[#F9FAFB] p-3">
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: 12, backgroundColor: '#1C1C28', padding: 14 }}>
       <View className="flex-1">
-        <Text className="text-[13px] font-semibold text-[#1F2937]">
-          {variant.size ? `Size ${variant.size}` : 'Default'}
+        <Text style={{ fontSize: 14, fontWeight: '600', color: '#F0F0F5' }}>
+          {variant.size ? `Size ${variant.size}` : 'Mặc định'}
           {variant.color ? ` · ${variant.color}` : ''}
         </Text>
-        <Text className="text-[11px] text-[#6B7280]">SKU: {variant.sku}</Text>
+        <Text style={{ fontSize: 12, color: '#8888A0', marginTop: 2 }}>SKU: {variant.sku}</Text>
       </View>
       <AppInput
         value={stockValue}
@@ -262,8 +267,15 @@ function VariantRow({
       <Pressable
         disabled={!canSave}
         onPress={onSave}
-        className={`rounded-full px-3 py-1.5 ${canSave ? 'bg-[#F97316]' : 'bg-[#FED7AA]'}`}>
-        <Text className="text-[11px] font-semibold text-white">{saving ? '...' : 'Lưu'}</Text>
+        style={{
+          borderRadius: 9999,
+          backgroundColor: canSave ? '#6C63FF' : '#444455',
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+        }}>
+        <Text style={{ fontSize: 12, fontWeight: '600', color: '#FFFFFF' }}>
+          {saving ? '...' : 'Lưu'}
+        </Text>
       </Pressable>
     </View>
   );
@@ -295,9 +307,9 @@ function ProductEditorPanel({
       <Text className="mb-3 text-[14px] font-semibold text-[#1F2937]">Thông tin sản phẩm</Text>
       <View className="gap-2">
         <AppInput label="Tên" value={editProductForm.name} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, name: v }))} />
-        <AppInput label="Slug" value={editProductForm.slug} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, slug: v }))} />
+        <AppInput label="Đường dẫn (Slug)" value={editProductForm.slug} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, slug: v }))} />
         <AppInput label="Giá cơ bản" value={editProductForm.basePrice} keyboardType="numeric" onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, basePrice: v.replace(/[^0-9]/g, '') }))} />
-        <AppInput label="Brand" value={editProductForm.brand} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, brand: v }))} />
+        <AppInput label="Thương hiệu" value={editProductForm.brand} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, brand: v }))} />
         <AppInput label="Ảnh mặc định URL" value={editProductForm.defaultImage} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, defaultImage: v }))} />
         <AppInput label="Mô tả" value={editProductForm.description} onChangeText={(v) => onEditFormChange((prev) => ({ ...prev, description: v }))} />
         <ActionRow>
@@ -308,34 +320,34 @@ function ProductEditorPanel({
             <Text className="text-[12px] font-semibold text-[#374151]">{isActive ? 'Tạm ngưng' : 'Bật bán'}</Text>
           </Pressable>
           <Pressable onPress={onDeleteProduct} className="rounded-full bg-[#FEE2E2] px-3 py-2">
-            <Text className="text-[12px] font-semibold text-[#B91C1C]">Xoá</Text>
+            <Text className="text-[12px] font-semibold text-[#B91C1C]">Xóa</Text>
           </Pressable>
         </ActionRow>
       </View>
 
       <Text className="mb-3 mt-5 text-[14px] font-semibold text-[#1F2937]">Thêm biến thể mới</Text>
       <View className="gap-2">
-        <AppInput label="Variant ID" value={newVariantForm.id} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, id: v }))} />
-        <AppInput label="SKU" value={newVariantForm.sku} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, sku: v }))} />
+        <AppInput label="ID biến thể" value={newVariantForm.id} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, id: v }))} />
+        <AppInput label="Mã SKU" value={newVariantForm.sku} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, sku: v }))} />
         <View className="flex-row gap-2">
           <View className="flex-1">
-            <AppInput label="Size" value={newVariantForm.size} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, size: v }))} />
+            <AppInput label="Kích cỡ" value={newVariantForm.size} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, size: v }))} />
           </View>
           <View className="flex-1">
-            <AppInput label="Color" value={newVariantForm.color} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, color: v }))} />
+            <AppInput label="Màu sắc" value={newVariantForm.color} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, color: v }))} />
           </View>
         </View>
         <View className="flex-row gap-2">
           <View className="flex-1">
-            <AppInput label="Price" keyboardType="numeric" value={newVariantForm.price} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, price: v.replace(/[^0-9]/g, '') }))} />
+            <AppInput label="Giá" keyboardType="numeric" value={newVariantForm.price} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, price: v.replace(/[^0-9]/g, '') }))} />
           </View>
           <View className="flex-1">
-            <AppInput label="Stock" keyboardType="numeric" value={newVariantForm.stock} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, stock: v.replace(/[^0-9]/g, '') }))} />
+            <AppInput label="Tồn kho" keyboardType="numeric" value={newVariantForm.stock} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, stock: v.replace(/[^0-9]/g, '') }))} />
           </View>
         </View>
-        <AppInput label="Image URL" value={newVariantForm.image} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, image: v }))} />
+        <AppInput label="URL hình ảnh" value={newVariantForm.image} onChangeText={(v) => onNewVariantFormChange((prev) => ({ ...prev, image: v }))} />
         <Pressable onPress={onCreateVariant} className="rounded-full bg-[#111827] px-3 py-2">
-          <Text className="text-center text-[12px] font-semibold text-white">Tạo variant</Text>
+          <Text className="text-center text-[12px] font-semibold text-white">Tạo biến thể</Text>
         </Pressable>
       </View>
     </View>

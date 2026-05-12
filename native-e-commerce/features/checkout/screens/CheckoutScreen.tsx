@@ -5,7 +5,8 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Button } from '~/components/Button';
 import { useToast } from '~/components/ToastProvider';
-import { AppInput } from '~/components/ui/AppInput';
+import { VoucherBottomSheet } from '~/components/checkout/VoucherBottomSheet';
+import { AddressCard } from '~/components/address/AddressCard';
 import { useCart } from '~/features/cart/hooks/useCart';
 import { getAddresses } from '~/features/account/services/addressStorage';
 import { getAccessToken } from '~/lib/api/token';
@@ -69,15 +70,15 @@ export default function CheckoutScreen() {
   );
   const [placing, setPlacing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [promoInput, setPromoInput] = useState('');
-  const [promoCode, setPromoCode] = useState<string | null>(null);
+  const [voucherCode, setVoucherCode] = useState<string | null>(null);
+  const [voucherDiscount, setVoucherDiscount] = useState<number>(0);
+  const [showVoucherSheet, setShowVoucherSheet] = useState(false);
   const promoFromRoute = Array.isArray(params.promoCode) ? params.promoCode[0] : params.promoCode;
 
   useEffect(() => {
     const normalized = promoFromRoute?.trim().toUpperCase();
     if (!normalized) return;
-    setPromoInput((prev) => prev || normalized);
-    setPromoCode((prev) => prev ?? normalized);
+    setVoucherCode(normalized);
   }, [promoFromRoute]);
 
   const refreshAddresses = useCallback(async () => {
@@ -104,7 +105,7 @@ export default function CheckoutScreen() {
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const shipping =
     items.length === 0 ? 0 : subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE_VND;
-  const discount = 0;
+  const discount = voucherDiscount;
   const total = subtotal + shipping - discount;
 
   const selectedAddress = useMemo(
@@ -158,7 +159,7 @@ export default function CheckoutScreen() {
         shippingAddressId: selectedAddress!.id,
         paymentMethod: selectedPaymentMethodId,
         paymentMethodType: selectedPaymentMethod!.type,
-        promoCode: promoCode ?? undefined,
+        promoCode: voucherCode ?? undefined,
       });
       clearCart();
       addToast('success', L.checkout.successTitle, L.checkout.successMessage);
@@ -166,7 +167,7 @@ export default function CheckoutScreen() {
         pathname: '/checkout-success',
         params: {
           orderId: created.id,
-          promoCode: promoCode ?? undefined,
+          promoCode: voucherCode ?? undefined,
           paymentMethodType: selectedPaymentMethod!.type,
           orderTotal: total.toString(),
         },
@@ -178,12 +179,23 @@ export default function CheckoutScreen() {
         pathname: '/checkout-failure',
         params: {
           error: msg,
-          promoCode: promoCode ?? undefined,
+          promoCode: voucherCode ?? undefined,
         },
       });
     } finally {
       setPlacing(false);
     }
+  };
+
+  const handleApplyVoucher = (code: string, discountAmount: number) => {
+    setVoucherCode(code);
+    setVoucherDiscount(discountAmount);
+    addToast('success', 'Thành công', `Đã áp dụng mã ${code}`);
+  };
+
+  const handleRemoveVoucher = () => {
+    setVoucherCode(null);
+    setVoucherDiscount(0);
   };
 
   return (
@@ -227,84 +239,27 @@ export default function CheckoutScreen() {
                         Giao hàng đến đâu?
                       </Text>
                     </View>
-                    <Pressable onPress={() => router.push('/address')}>
+                    <Pressable onPress={() => router.push('/addresses')}>
                       <Text style={{ fontSize: 14, fontWeight: '800', color: '#6C63FF', letterSpacing: 0.3 }}>Thay đổi</Text>
                     </Pressable>
                   </View>
 
-                  <View style={{ gap: 12 }}>
+                  <View style={{ gap: 14 }}>
                     {shippingAddresses.length === 0 ? (
-                      <Text style={{ fontSize: 14, color: '#8888A0', lineHeight: 22 }}>
-                        Chưa có địa chỉ. Đăng nhập và thêm địa chỉ trong Address book.
-                      </Text>
+                      <View style={{ padding: 16, borderRadius: 16, backgroundColor: '#1C1C28', borderWidth: 1, borderColor: '#2A2A3A' }}>
+                        <Text style={{ fontSize: 14, color: '#8888A0', lineHeight: 22, textAlign: 'center' }}>
+                          Chưa có địa chỉ. Đăng nhập và thêm địa chỉ trong Address book.
+                        </Text>
+                      </View>
                     ) : (
-                      shippingAddresses.map((address) => {
-                        const isSelected = address.id === selectedAddressId;
-
-                        return (
-                          <Pressable
-                            key={address.id}
-                            onPress={() => setSelectedAddressId(address.id)}
-                            style={{
-                              borderRadius: 18,
-                              borderWidth: isSelected ? 2 : 1,
-                              borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
-                              backgroundColor: isSelected ? 'rgba(108, 99, 255, 0.08)' : '#1C1C28',
-                              padding: 16,
-                              shadowColor: isSelected ? '#6C63FF' : '#000',
-                              shadowOffset: { width: 0, height: isSelected ? 6 : 2 },
-                              shadowOpacity: isSelected ? 0.3 : 0.1,
-                              shadowRadius: isSelected ? 12 : 6,
-                              elevation: isSelected ? 6 : 2,
-                            }}>
-                            <View style={{ flexDirection: 'row', alignItems: 'start', gap: 14 }}>
-                              <View
-                                style={{
-                                  marginTop: 2,
-                                  height: 48,
-                                  width: 48,
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  borderRadius: 9999,
-                                  backgroundColor: isSelected ? '#6C63FF' : '#13131A',
-                                  borderWidth: 1,
-                                  borderColor: isSelected ? '#6C63FF' : '#2A2A3A',
-                                }}>
-                                <Ionicons
-                                  name="location"
-                                  size={22}
-                                  color={isSelected ? '#FFFFFF' : '#8888A0'}
-                                />
-                              </View>
-                              <View style={{ flex: 1 }}>
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                                  <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#6C63FF' : '#F0F0F5', letterSpacing: 0.2 }}>
-                                    {address.name}
-                                  </Text>
-                                  {address.isDefault ? (
-                                    <View style={{ borderRadius: 9999, backgroundColor: 'rgba(62, 207, 142, 0.15)', borderWidth: 1, borderColor: 'rgba(62, 207, 142, 0.3)', paddingHorizontal: 8, paddingVertical: 3 }}>
-                                      <Text style={{ fontSize: 10, fontWeight: '800', color: '#3ECF8E', letterSpacing: 0.5 }}>
-                                        Mặc định
-                                      </Text>
-                                    </View>
-                                  ) : null}
-                                </View>
-                                <Text style={{ fontSize: 14, lineHeight: 22, color: '#8888A0', fontWeight: '500', marginBottom: 4 }}>
-                                  {address.address}
-                                </Text>
-                                <Text style={{ fontSize: 14, color: '#8888A0', fontWeight: '500' }}>
-                                  {address.city} • {address.phone}
-                                </Text>
-                              </View>
-                              {isSelected && (
-                                <View style={{ position: 'absolute', top: 14, right: 14, width: 24, height: 24, borderRadius: 9999, backgroundColor: '#6C63FF', alignItems: 'center', justifyContent: 'center', shadowColor: '#6C63FF', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.4, shadowRadius: 6, elevation: 4 }}>
-                                  <Text style={{ color: '#FFFFFF', fontSize: 14, fontWeight: '900' }}>✓</Text>
-                                </View>
-                              )}
-                            </View>
-                          </Pressable>
-                        );
-                      })
+                      shippingAddresses.map((address) => (
+                        <AddressCard
+                          key={address.id}
+                          address={address}
+                          isSelected={address.id === selectedAddressId}
+                          onPress={() => setSelectedAddressId(address.id)}
+                        />
+                      ))
                     )}
                   </View>
 
@@ -388,38 +343,49 @@ export default function CheckoutScreen() {
                 </View>
 
                 <View className="mt-4 rounded-[28px] bg-bg-surface border border-semantic-border p-4">
-                  <Text className="text-[16px] font-semibold text-text-primary">Mã giảm giá</Text>
-                  <Text className="mt-1 text-[13px] text-text-secondary">
-                    Mã sẽ được backend kiểm tra khi đặt đơn.
-                  </Text>
-                  <View className="mt-3 flex-row items-end gap-2">
+                  <Pressable
+                    onPress={() => setShowVoucherSheet(true)}
+                    className="flex-row items-center justify-between"
+                  >
                     <View className="flex-1">
-                      <AppInput
-                        value={promoInput}
-                        onChangeText={setPromoInput}
-                        placeholder="Nhập mã giảm giá"
-                        autoCapitalize="characters"
-                      />
+                      <View className="flex-row items-center gap-2">
+                        <Ionicons name="ticket" size={20} color="#6C63FF" />
+                        <Text className="text-[16px] font-semibold text-text-primary">
+                          Mã giảm giá
+                        </Text>
+                      </View>
+                      {voucherCode ? (
+                        <View className="mt-2 flex-row items-center gap-2">
+                          <View className="rounded-[10px] bg-semantic-success/15 px-3 py-1.5">
+                            <Text className="text-[13px] font-bold text-semantic-success">
+                              {voucherCode}
+                            </Text>
+                          </View>
+                          <Text className="text-[13px] font-semibold text-semantic-success">
+                            -{formatCurrency(voucherDiscount)}
+                          </Text>
+                        </View>
+                      ) : (
+                        <Text className="mt-1 text-[13px] text-text-secondary">
+                          Chọn hoặc nhập mã
+                        </Text>
+                      )}
                     </View>
-                    <Pressable
-                      onPress={() => {
-                        const normalized = promoInput.trim().toUpperCase();
-                        if (!normalized) return;
-                        setPromoCode(normalized);
-                        setPromoInput(normalized);
-                      }}
-                      className="rounded-full bg-accent px-4 py-2.5">
-                      <Text className="text-[12px] font-semibold text-white">Áp dụng</Text>
-                    </Pressable>
-                  </View>
-                  {promoCode ? (
-                    <View className="mt-3 flex-row items-center justify-between rounded-[14px] bg-semantic-success/10 border border-semantic-success/25 px-3 py-2">
-                      <Text className="text-[12px] font-semibold text-semantic-success">Đang áp dụng: {promoCode}</Text>
-                      <Pressable onPress={() => setPromoCode(null)}>
-                        <Text className="text-[12px] font-semibold text-semantic-success">Bỏ</Text>
-                      </Pressable>
+                    <View className="flex-row items-center gap-2">
+                      {voucherCode ? (
+                        <Pressable
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleRemoveVoucher();
+                          }}
+                          className="mr-2 h-8 w-8 items-center justify-center rounded-full bg-semantic-error/10"
+                        >
+                          <Ionicons name="close" size={18} color="#FF6584" />
+                        </Pressable>
+                      ) : null}
+                      <Ionicons name="chevron-forward" size={20} color="#8888A0" />
                     </View>
-                  ) : null}
+                  </Pressable>
                 </View>
 
                 <View className="mt-4 rounded-[28px] bg-bg-surface border border-semantic-border p-5">
@@ -432,14 +398,9 @@ export default function CheckoutScreen() {
                   />
                   <SummaryRow
                     label="Giảm giá"
-                    value={`-${formatCurrency(discount)}`}
-                    valueClass="text-semantic-success"
+                    value={discount > 0 ? `-${formatCurrency(discount)}` : formatCurrency(0)}
+                    valueClass={discount > 0 ? "text-semantic-success" : "text-text-secondary"}
                   />
-                  {promoCode ? (
-                    <Text className="mb-3 text-[12px] text-semantic-success">
-                      Promo `{promoCode}` sẽ được xác nhận khi nhấn Đặt hàng.
-                    </Text>
-                  ) : null}
 
                   <View className="my-3 h-px bg-semantic-border" />
 
@@ -497,11 +458,6 @@ export default function CheckoutScreen() {
                 <Text className="mt-1 text-[13px] text-text-secondary" numberOfLines={2}>
                   {selectedAddress?.address}, {selectedAddress?.city}
                 </Text>
-                {promoCode ? (
-                  <Text className="mt-1 text-[12px] font-semibold text-semantic-success">
-                    Promo: {promoCode}
-                  </Text>
-                ) : null}
               </View>
 
               <View className="mt-5 flex-row gap-3">
@@ -523,6 +479,14 @@ export default function CheckoutScreen() {
           </View>
         ) : null}
       </View>
+
+      <VoucherBottomSheet
+        visible={showVoucherSheet}
+        onClose={() => setShowVoucherSheet(false)}
+        onApply={handleApplyVoucher}
+        currentSubtotal={subtotal}
+        appliedCode={voucherCode ?? undefined}
+      />
     </>
   );
 }

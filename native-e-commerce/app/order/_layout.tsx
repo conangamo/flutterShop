@@ -20,7 +20,13 @@ export default function OrderLayout() {
         },
       }}
     >
-      <Stack.Screen name="[id]" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="[id]" 
+        options={{ 
+          headerShown: false,
+          title: 'Chi tiết đơn hàng'
+        }} 
+      />
     </Stack>
   );
 }

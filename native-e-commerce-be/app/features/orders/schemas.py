@@ -50,3 +50,25 @@ class OrderStatusUpdateIn(BaseModel):
     tracking_number: str | None = Field(default=None, alias="trackingNumber", max_length=120)
 
     model_config = {"populate_by_name": True}
+
+
+class VoucherValidateIn(BaseModel):
+    """Request to validate a voucher code against current cart."""
+    code: str = Field(min_length=1, max_length=50)
+    subtotal: Decimal = Field(gt=0, description="Cart subtotal before shipping and discount")
+
+    model_config = {"populate_by_name": True}
+
+
+class VoucherValidateOut(BaseModel):
+    """Response with voucher validation result."""
+    valid: bool
+    code: str
+    discount_type: str | None = Field(default=None, alias="discountType")
+    discount_value: float | None = Field(default=None, alias="discountValue")
+    discount_amount: float | None = Field(default=None, alias="discountAmount")
+    max_discount: float | None = Field(default=None, alias="maxDiscount")
+    min_order_total: float | None = Field(default=None, alias="minOrderTotal")
+    error_message: str | None = Field(default=None, alias="errorMessage")
+
+    model_config = {"populate_by_name": True}
